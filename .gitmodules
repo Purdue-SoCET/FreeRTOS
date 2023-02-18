@@ -76,3 +76,6 @@
 [submodule "FreeRTOS-Plus/Source/FreeRTOS-Cellular-Modules/sara-r4"]
 	path = FreeRTOS-Plus/Source/FreeRTOS-Cellular-Modules/sara-r4
 	url = https://github.com/FreeRTOS/Lab-FreeRTOS-Cellular-Interface-Reference-ublox-SARA-R4.git
+[submodule "FreeRTOS/Demo/AFTx07/aft-hal"]
+	path = FreeRTOS/Demo/AFTx07/aft-hal
+	url = git@github.com:Purdue-SoCET/aft-hal.git
