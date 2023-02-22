@@ -1,5 +1,7 @@
 OUTPUT_DIR := ./output
 IMAGE := RTOSDemo.elf
+BINARY := RTOSDemo.bin
+TEXT := RTOS.disassemble
 
 # The directory that contains the /source and /demo sub directories.
 FREERTOS_ROOT = ./../../../..
@@ -7,14 +9,16 @@ FREERTOS_ROOT = ./../../../..
 CC = riscv64-unknown-elf-gcc
 LD = riscv64-unknown-elf-gcc
 SIZE = riscv64-unknown-elf-size
+OBJ = riscv64-unknown-elf-objcopy
+OBJDUMP = riscv64-unknown-elf-objdump
 MAKE = make
 
-CFLAGS += $(INCLUDE_DIRS) -DportasmHANDLE_INTERRUPT=handle_trap -fmessage-length=0 \
-          -march=rv32imac -mabi=ilp32 -mcmodel=medlow -ffunction-sections -fdata-sections \
-          --specs=nano.specs -fno-builtin-printf  -Wno-unused-parameter -nostartfiles -g3 -Os
+CFLAGS += $(INCLUDE_DIRS) -DportasmHANDLE_INTERRUPT=handle_trap -fmessage-length=0 -static \
+          -march=rv32imc -mabi=ilp32 -mcmodel=medany -ffunction-sections -fdata-sections \
+          --specs=nano.specs -fno-builtin-printf -Wno-unused-parameter -nostartfiles -g3 -Os
           
 LDFLAGS += -nostartfiles -Xlinker --gc-sections -Wl,-Map,$(OUTPUT_DIR)/RTOSDemo.map \
-           -T./fake_rom.ld -march=rv32imac -mabi=ilp32 -mcmodel=medlow -Xlinker \
+           -T./fake_rom.ld -march=rv32imc -mabi=ilp32 -mcmodel=medany -Xlinker \
            --defsym=__stack_size=350 -Wl,--start-group -Wl,--end-group -Wl,--wrap=malloc \
            -Wl,--wrap=free -Wl,--wrap=open -Wl,--wrap=lseek -Wl,--wrap=read -Wl,--wrap=write \
            -Wl,--wrap=fstat -Wl,--wrap=stat -Wl,--wrap=close -Wl,--wrap=link -Wl,--wrap=unlink \
@@ -83,20 +87,19 @@ SOURCE_FILES += (COMMON_DEMO_FILES)/TimerDemo.c
 # Application entry point.  main_blinky is self contained.  main_full builds
 # the above common demo (and test) files too.
 #
-DEMO_PROJECT = $(DEMO_ROOT)/RISC-V_RV32_QEMU_VIRT_GCC
+DEMO_PROJECT = $(DEMO_ROOT)/AFTx07
 VPATH += $(DEMO_PROJECT)
 INCLUDE_DIRS += -I$(DEMO_PROJECT)
 SOURCE_FILES += (DEMO_PROJECT)/main.c
 SOURCE_FILES += (DEMO_PROJECT)/main_blinky.c
 SOURCE_FILES += (DEMO_PROJECT)/main_full.c
-SOURCE_FILES += (DEMO_PROJECT)/ns16550.c
+# SOURCE_FILES += (DEMO_PROJECT)/ns16550.c
 SOURCE_FILES += (DEMO_PROJECT)/riscv-virt.c
 # Lightweight print formatting to use in place of the heavier GCC equivalent.
 SOURCE_FILES += ./printf-stdarg.c
 ASM_SOURCE_FILES += ./start.S
 ASM_SOURCE_FILES += ./RegTest.S
 ASM_SOURCE_FILES += ./vector.S
-
 
 #Create a list of object files with the desired output directory path.
 OBJS = $(SOURCE_FILES:%.c=%.o) $(ASM_SOURCE_FILES:%.S=%.o)
@@ -123,8 +126,11 @@ $(OUTPUT_DIR)/$(IMAGE): $(OBJS_OUTPUT) Makefile
 	@echo ""
 	@echo "--- Final linking ---"
 	@echo ""
+	rm -f $(OUTPUT_DIR)/$(TEXT)
 	$(LD) $(OBJS_OUTPUT) $(LDFLAGS) -o $(OUTPUT_DIR)/$(IMAGE)
 	$(SIZE) $(OUTPUT_DIR)/$(IMAGE)
+	$(OBJDUMP) -D $(OUTPUT_DIR)/$(IMAGE) >> $(OUTPUT_DIR)/$(TEXT)
+	$(OBJ) $(OUTPUT_DIR)/$(IMAGE) -O binary $(OUTPUT_DIR)/$(BINARY)
 
 $(DEP_OUTPUT):
 include $(wildcard $(DEP_OUTPUT))

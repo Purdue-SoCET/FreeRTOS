@@ -3,10 +3,10 @@ ENTRY( _start )
 
 MEMORY
 {
-	/* Fake ROM area */
-	rom (rxa) : ORIGIN = 0x80000000, LENGTH = 512K
-	ram (wxa) : ORIGIN = 0x80080000, LENGTH = 512K
+	RAM : ORIGIN = 0x8400, LENGTH = 512K
 }
+
+ENTRY(_start);
 
 SECTIONS
 {
@@ -14,7 +14,7 @@ SECTIONS
 	{
 		_text = .;
 		KEEP (*(SORT_NONE(.init)))
-	} >rom AT>rom
+	} > RAM
 	
 	.text :
 	{
@@ -22,24 +22,24 @@ SECTIONS
 		*(.text.startup .text.startup.*)
 		*(.text .text.*)
 		*(.gnu.linkonce.t.*)
-	} >rom AT>rom
+	} > RAM
 	
 	.fini :
 	{
 		KEEP (*(SORT_NONE(.fini)))
 		_etext = .;
-	} >rom AT>rom
+	} > RAM
 
 	.rodata.align :
 	{
 		. = ALIGN(4);
 		_rodata = .;
-	} >rom AT>rom
+	} > RAM
 
 	.rodata.start :
 	{
 		_rodata_lma = LOADADDR(.rodata.start);
-	} >rom AT>rom
+	} > RAM
 
 	.rodata :
 	{
@@ -49,18 +49,18 @@ SECTIONS
 
 		. = ALIGN(4);
 		_erodata = .;
-	} >rom AT>rom
+	} > RAM
 
 	.data.align :
 	{
 		. = ALIGN(4);
 		_data = .;
-	} >ram AT>rom
+	} > RAM
 
 	.data.start :
 	{
 		_data_lma = LOADADDR(.data.start);
-	} >ram AT>rom
+	} > RAM
 
 	.data :
 	{
@@ -80,18 +80,18 @@ SECTIONS
 
 		. = ALIGN(4);
 		_edata = .;
-	} >ram AT>rom
+	} > RAM
 
 	.bss.align :
 	{
 		. = ALIGN(4);
 		_bss = .;
-	} >ram AT>rom
+	} > RAM
 
 	.bss.start :
 	{
 		_bss_lma = LOADADDR(.bss.start);
-	} >ram AT>rom
+	} > RAM
 
 	.bss :
 	{
@@ -103,7 +103,7 @@ SECTIONS
 
 		. = ALIGN(4);
 		_ebss = .;
-	} >ram AT>rom
+	} > RAM
 
 	. = ALIGN(8);
 	_end = .;
@@ -113,5 +113,5 @@ SECTIONS
 		. = ALIGN(16);
 		. += __stack_size;
 		_stack_top = .;
-	} >ram AT>ram
+	} > RAM
 }

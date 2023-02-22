@@ -30,19 +30,18 @@
 #include "riscv-reg.h"
 
 #ifdef __ASSEMBLER__
-#define CONS(NUM, TYPE)NUM
+#define CONS(NUM, TYPE) NUM
 #else
-#define CONS(NUM, TYPE)NUM##TYPE
+#define CONS(NUM, TYPE) NUM##TYPE
 #endif /* __ASSEMBLER__ */
 
 #define PRIM_HART			0
 
-#define CLINT_ADDR			CONS(0x02000000, UL)
-#define CLINT_MSIP			CONS(0x0000, UL)
-#define CLINT_MTIMECMP		CONS(0x4000, UL)
-#define CLINT_MTIME			CONS(0xbff8, UL)
+#define CLINT_ADDR			CONS(0x90000000, UL)
+#define CLINT_MSIP			CLINT_ADDR + CONS(0x0, UL)
+#define CLINT_MTIMECMP	CLINT_ADDR + CONS(0xC, UL)
+#define CLINT_MTIME			CLINT_ADDR + CONS(0x4, UL)
 
-#define NS16550_ADDR		CONS(0x10000000, UL)
 
 #ifndef __ASSEMBLER__
 

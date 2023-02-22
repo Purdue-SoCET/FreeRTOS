@@ -26,17 +26,15 @@
 */
 
 #include <stdarg.h>
-#include "ns16550.h"
 #include "riscv-virt.h"
 
-#define putchar(c)      vOutNS16550( &dev, c )
+#define putchar(c)	 *(volatile char *)0x00001000 = c
 
 static int tiny_print( char **out, const char *format, va_list args, unsigned int buflen );
 
-static struct device dev = { NS16550_ADDR };
-
 static void printchar(char **str, int c, char *buflimit)
 {
+	char a_char;
 	if (str) {
 		if( buflimit == ( char * ) 0 ) {
 			/* Limit of buffer not known, write charater to buffer. */
@@ -51,7 +49,8 @@ static void printchar(char **str, int c, char *buflimit)
 	}
 	else
 	{
-		putchar(c);
+		a_char = (char)c;
+		putchar(a_char);
 	}
 }
 

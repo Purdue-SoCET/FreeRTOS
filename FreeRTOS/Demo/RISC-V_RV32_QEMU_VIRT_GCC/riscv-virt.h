@@ -30,9 +30,9 @@
 #include "riscv-reg.h"
 
 #ifdef __ASSEMBLER__
-#define CONS(NUM, TYPE)NUM
+#define CONS(NUM, TYPE) NUM
 #else
-#define CONS(NUM, TYPE)NUM##TYPE
+#define CONS(NUM, TYPE) NUM##TYPE
 #endif /* __ASSEMBLER__ */
 
 #define PRIM_HART			0

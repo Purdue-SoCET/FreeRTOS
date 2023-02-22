@@ -76,14 +76,6 @@ address BASE plus four times the interrupt cause number.
 */
 #define mainVECTOR_MODE_DIRECT	0
 
-/* printf() output uses the UART.  These constants define the addresses of the
-required UART registers. */
-#define UART0_ADDRESS 	( 0x40004000UL )
-#define UART0_DATA		( * ( ( ( volatile uint32_t * )( UART0_ADDRESS + 0UL ) ) ) )
-#define UART0_STATE		( * ( ( ( volatile uint32_t * )( UART0_ADDRESS + 4UL ) ) ) )
-#define UART0_CTRL		( * ( ( ( volatile uint32_t * )( UART0_ADDRESS + 8UL ) ) ) )
-#define UART0_BAUDDIV	( * ( ( ( volatile uint32_t * )( UART0_ADDRESS + 16UL ) ) ) )
-#define TX_BUFFER_MASK	( 1UL )
 
 /* Registers used to initialise the PLIC. */
 #define mainPLIC_PENDING_0 ( * ( ( volatile uint32_t * ) 0x0C001000UL ) )
@@ -291,19 +283,10 @@ static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 
 int __write( int iFile, char *pcString, int iStringLength )
 {
-	int iNextChar;
-
 	/* Avoid compiler warnings about unused parameters. */
 	( void ) iFile;
 
-	/* Output the formatted string to the UART. */
-	for( iNextChar = 0; iNextChar < iStringLength; iNextChar++ )
-	{
-		while( ( UART0_STATE & TX_BUFFER_MASK ) != 0 );
-		UART0_DATA = *pcString;
-		pcString++;
-	}
-
+	printf("%s", pcString);
 	return iStringLength;
 }
 /*-----------------------------------------------------------*/
