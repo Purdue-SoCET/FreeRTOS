@@ -1,13 +1,17 @@
 # Emulating generic RISC-V 32bit machine on QEMU
 
 ## Requirements
+1. Set up Software in Socet Confluence.
 
-1. GNU RISC-V toolchains (tested on pre-built Sifive GNU Embedded Toolchain — v2020.12.8)
-  - https://www.sifive.com/software
-1. qemu-riscv32-system  (tested on pre-built Sifive QEMU — v2020.08.1)
-  - https://www.sifive.com/software
-1. Linux OS (tested on Ubuntu 20.04.3 LTS)
+https://wiki.itap.purdue.edu/pages/viewpage.action?pageId=247664452
 
+2. GNU RISC-V toolchains.
+
+It should be done in the previous step, if not download from here and add to PATH.
+```
+cd ~
+wget https://static.dev.sifive.com/dev-tools/freedom-tools/v2020.08/riscv64-unknown-elf-gcc-10.1.0-2020.08.2-x86_64-linux-centos6.tar.gz
+```
 
 ## How to build
 
@@ -25,6 +29,8 @@ $ make -C build/gcc/
 
 For debug build:
 
+**NOTE: not yet tested**
+
 ```
 $ make -C build/gcc/ DEBUG=1
 ```
@@ -35,33 +41,16 @@ To clean build artifacts:
 $ make -C build/gcc/ clean
 ```
 
-If the build was successful, the RTOSDemo.elf executable will be located in the build/gcc/output directory.
+If the build was successful, the RTOSDemo.bin will be located in the build/gcc/output directory and can be copy to main AFTx07 and rename to meminit.bin.
+
 
 
 ## How to run
 
+**NOTE:** run from main AFTx07 dir.
 ```
-$ qemu-system-riscv32 -nographic -machine virt -net none \
-  -chardev stdio,id=con,mux=on -serial chardev:con \
-  -mon chardev=con,mode=readline -bios none \
-  -smp 4 -kernel ./build/gcc/output/RTOSDemo.elf
+$ ./aft_out/sim-verilator/Vaftx07
 ```
-
-
-## How to debug with gdb
-
-Append -s and -S options to the previous qemu command.
-
-- -s: enable to attach gdb to QEMU at port 1234
-- -S: start and halted CPU (wait for attach from gdb)
-
-It is recommended to use the 'debug build' so that gdb can automatically map symbols.
-Run these commands after starting the QEMU with above options:
-
-```
-$ riscv64-unknown-elf-gdb -x build/gcc/gdbinit
-```
-
 
 ## Description
 
