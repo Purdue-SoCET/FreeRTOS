@@ -110,6 +110,7 @@ void main_blinky( void )
 {
 const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
 
+	printf("Get into main_blinky\n");
 	/* Create the queue. */
 	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
 

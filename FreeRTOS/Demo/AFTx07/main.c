@@ -65,7 +65,7 @@ The blinky demo is implemented and described in main_blinky.c.
 If mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is not 1 then the comprehensive test and
 demo application will be built.  The comprehensive test and demo application is
 implemented and described in main_full.c. */
-#define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	0
+#define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	1
 
 /* Set to 1 to use direct mode and set to 0 to use vectored mode.
 VECTOR MODE=Direct --> all traps into machine mode cause the pc to be set to the
@@ -106,7 +106,6 @@ void main( void )
 {
 	/* See https://www.freertos.org/freertos-on-qemu-mps2-an385-model.html for
 	instructions. */
-
 	#if( mainVECTOR_MODE_DIRECT == 1 )
 	{
 		__asm__ volatile( "csrw mtvec, %0" :: "r"( freertos_risc_v_trap_handler ) );
@@ -116,7 +115,7 @@ void main( void )
 		__asm__ volatile( "csrw mtvec, %0" :: "r"( ( uintptr_t )freertos_vector_table | 0x1 ) );
 	}
 	#endif
-
+	printf("Get into main\n");
 	/* The mainCREATE_SIMPLE_BLINKY_DEMO_ONLY setting is described at the top
 	of this file. */
 	#if ( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 )

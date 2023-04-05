@@ -75,11 +75,11 @@ _start:
 	li  a2, 0
 	jal main
 1:
-	wfi
+	# wfi
 	j 1b
 
 secondary:
 	// TODO: Multicore is not supported
-	wfi
+	# wfi
 	j secondary
 	.cfi_endproc

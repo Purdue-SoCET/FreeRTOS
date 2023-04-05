@@ -12,4 +12,10 @@ To understand RISCV porting, please look at [RISV Port](https://www.freertos.org
 To modify config file, please look at [FreeRTOSConfig.h](https://www.freertos.org/a00110.html).
 
 ## How to build
+First pull to submodule Source.
+
+```
+git submodule update --init
+```
+
 The building instruction is at dir FreeRTOS/Demo/AFTx07.
