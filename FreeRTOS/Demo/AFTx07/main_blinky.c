@@ -71,8 +71,8 @@
 
 /* The rate at which data is sent to the queue.  The times are converted from
 milliseconds to ticks using the pdMS_TO_TICKS() macro. */
-#define mainTASK_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 200UL )
-#define mainTIMER_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 2000UL )
+#define mainTASK_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 20UL )
+#define mainTIMER_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 200UL )
 
 /* The number of items the queue can hold at once. */
 #define mainQUEUE_LENGTH					( 2 )
@@ -124,8 +124,10 @@ const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
 					NULL, 							/* The parameter passed to the task - not used in this simple case. */
 					mainQUEUE_RECEIVE_TASK_PRIORITY,/* The priority assigned to the task. */
 					NULL );							/* The task handle is not required, so NULL is passed. */
+		printf("Done created RX task\n");
 
 		xTaskCreate( prvQueueSendTask, "TX", configMINIMAL_STACK_SIZE, NULL, mainQUEUE_SEND_TASK_PRIORITY, NULL );
+		printf("Done created TX task\n");
 
 		/* Create the software timer, but don't start it yet. */
 		xTimer = xTimerCreate( "Timer",				/* The text name assigned to the software timer - for debug only as it is not used by the kernel. */
@@ -133,6 +135,7 @@ const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
 								pdTRUE,				/* xAutoReload is set to pdTRUE, so this is an auto-reload timer. */
 								NULL,				/* The timer's ID is not used. */
 								prvQueueSendTimerCallback );/* The function executed when the timer expires. */
+		printf("Done created timer task\n");
 
 		xTimerStart( xTimer, 0 ); /* The scheduler has not started so use a block time of 0. */
 
@@ -146,6 +149,7 @@ const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
 	timer tasks	to be created.  See the memory management section on the
 	FreeRTOS web site for more details.  NOTE: This demo uses static allocation
 	for the idle and timer tasks so this line should never execute. */
+	printf("This line should never be seen\nMaybe increase heap size in FreeRTOSConfig.h");
 	for( ;; );
 }
 /*-----------------------------------------------------------*/
@@ -175,6 +179,7 @@ const uint32_t ulValueToSend = mainVALUE_SENT_FROM_TASK;
 		will not block - it shouldn't need to block as the queue should always
 		have at least one space at this point in the code. */
 		xQueueSend( xQueue, &ulValueToSend, 0U );
+		printf("TX task sent\n");
 	}
 }
 /*-----------------------------------------------------------*/
@@ -195,6 +200,7 @@ const uint32_t ulValueToSend = mainVALUE_SENT_FROM_TIMER;
 	write out a message.  This function is called from the timer/daemon task, so
 	must not block.  Hence the block time is set to 0. */
 	xQueueSend( xQueue, &ulValueToSend, 0U );
+	printf("Timer expires\n");
 }
 /*-----------------------------------------------------------*/
 

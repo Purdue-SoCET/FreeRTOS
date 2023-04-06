@@ -38,9 +38,9 @@
 #define PRIM_HART			0
 
 #define CLINT_ADDR			CONS(0x90000000, UL)
-#define CLINT_MSIP			CLINT_ADDR + CONS(0x0, UL)
-#define CLINT_MTIMECMP	CLINT_ADDR + CONS(0xC, UL)
-#define CLINT_MTIME			CLINT_ADDR + CONS(0x4, UL)
+#define CLINT_MSIP			CONS(0x0, UL)
+#define CLINT_MTIME			CONS(0x4, UL)
+#define CLINT_MTIMECMP	    CONS(0xC, UL)
 
 
 #ifndef __ASSEMBLER__
