@@ -116,8 +116,13 @@ void main( void )
 	}
 	#endif
 	printf("Get into main\n");
+
 	/* The mainCREATE_SIMPLE_BLINKY_DEMO_ONLY setting is described at the top
-	of this file. */
+	of this file. 
+	SOCET note: for now we only use main_blinky, but I still keep the main_full.c 
+	source file in the directory, when the OS is more mature, hopefully we can
+	integrate those self test in main_full onto this OS that is running on AFTx 
+	*/
 	#if ( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 )
 	{
 		main_blinky();
