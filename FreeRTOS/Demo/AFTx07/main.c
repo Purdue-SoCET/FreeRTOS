@@ -101,6 +101,10 @@ void vFullDemoTickHookFunction( void );
 void vFullDemoIdleFunction( void );
 
 /*-----------------------------------------------------------*/
+void main_second(void)
+{
+	printf("You should not see this line!");
+}
 
 void main( void )
 {
