@@ -29,6 +29,7 @@ CWSettingsWindows.stg
 
 # Visual Studio cache/options directory
 .vs/
+.vscode/
 
 # Visual Studio Solution / project User Option files
 *.suo

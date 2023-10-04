@@ -3,7 +3,7 @@ ENTRY( _start )
 
 MEMORY
 {
-	RAM : ORIGIN = 0x8400, LENGTH = 512K
+	RAM : ORIGIN = 0x8400, LENGTH = 128K
 }
 
 ENTRY(_start);
