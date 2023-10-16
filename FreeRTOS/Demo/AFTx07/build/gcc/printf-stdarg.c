@@ -28,7 +28,7 @@
 #include <stdarg.h>
 #include "riscv-virt.h"
 
-#define putchar(c)	 *(volatile char *)0x00001000 = c
+#define putchar(c)	 *(volatile char *)0xB0000000 = c
 
 static int tiny_print( char **out, const char *format, va_list args, unsigned int buflen );
 

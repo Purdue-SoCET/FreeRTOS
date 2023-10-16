@@ -59,12 +59,16 @@
 application, and a more comprehensive test and demo application.  The
 mainCREATE_SIMPLE_BLINKY_DEMO_ONLY setting is used to select between the two.
 
+If mainFPGA is 1 then it will build wil purpose of showing demo on FPGA, otherwise
+the blinky demo is implemented
+
 If mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is 1 then the blinky demo will be built.
 The blinky demo is implemented and described in main_blinky.c.
 
 If mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is not 1 then the comprehensive test and
 demo application will be built.  The comprehensive test and demo application is
 implemented and described in main_full.c. */
+#define mainFGPA 1
 #define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	1
 
 /* Set to 1 to use direct mode and set to 0 to use vectored mode.
@@ -89,9 +93,11 @@ extern void freertos_vector_table( void );
 /*
  * main_blinky() is used when mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is set to 1.
  * main_full() is used when mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is set to 0.
+ * main_fpga() is AFTx07 specific to test on Socet FGPA
  */
 extern void main_blinky( void );
 extern void main_full( void );
+extern void main_fpga( void );
 
 /*
  * Only the comprehensive demo uses application hook (callback) functions.  See
@@ -127,6 +133,11 @@ void main( void )
 	source file in the directory, when the OS is more mature, hopefully we can
 	integrate those self test in main_full onto this OS that is running on AFTx 
 	*/
+	#if ( mainFGPA == 1)
+	{
+		main_fpga();
+	}
+	#else
 	#if ( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 )
 	{
 		main_blinky();
@@ -135,7 +146,8 @@ void main( void )
 	{
 		main_full();
 	}
-	#endif
+	#endif //mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1
+	#endif // ( mainFGPA == 1)
 }
 /*-----------------------------------------------------------*/
 
@@ -313,3 +325,15 @@ void *malloc( size_t size )
 }
 /*-----------------------------------------------------------*/
 
+void freertos_risc_v_application_exception_handler ( void ) 
+{
+	printf("application_exception_handler\n");
+	uint32_t exc_data[3];
+	asm volatile(
+			"csrr %0, mepc\n"
+			"csrr %1, mcause\n"
+			"csrr %2, mtval\n"
+			: "=r"(exc_data[0]), "=r"(exc_data[1]), "=r"(exc_data[2])
+		);
+	printf("mepc: 0x%x, mcause: 0x%x, mtval: 0x%x\n", exc_data[0], exc_data[1], exc_data[2]);
+}

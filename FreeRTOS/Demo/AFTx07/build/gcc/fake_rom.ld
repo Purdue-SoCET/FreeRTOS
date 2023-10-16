@@ -3,7 +3,7 @@ ENTRY( _start )
 
 MEMORY
 {
-	RAM : ORIGIN = 0x8400, LENGTH = 128K
+	RAM : ORIGIN = 0x8400, LENGTH = 32K
 }
 
 ENTRY(_start);
@@ -93,7 +93,7 @@ SECTIONS
 		_bss_lma = LOADADDR(.bss.start);
 	} > RAM
 
-	.bss :
+	.bss ALIGN(0x10):
 	{
 		*(.sbss*)
 		*(.gnu.linkonce.sb.*)
@@ -110,9 +110,9 @@ SECTIONS
 
 	.stack :
 	{
-		. = ALIGN(16);
+		. = ALIGN(4);
 		. += __stack_size;
-		. += ALIGN(16);
+		. += ALIGN(4);
 		_stack_top = .;
 	} > RAM
 }
