@@ -1,29 +1,3 @@
-/*
- * FreeRTOS V202212.00
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * https://www.FreeRTOS.org
- * https://github.com/FreeRTOS
- *
- */
-
 #ifndef RISCV_VIRT_H_
 #define RISCV_VIRT_H_
 
@@ -34,6 +8,23 @@
 #else
 #define CONS(NUM, TYPE) NUM##TYPE
 #endif /* __ASSEMBLER__ */
+
+/* 
+If mainFPGA is 1 then it will build wil purpose of showing demo on FPGA, otherwise
+the blinky demo is implemented
+
+If mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is 1 then the blinky demo will be built.
+The blinky demo is implemented and described in main_blinky.c, which is a
+simple blinky style demo application,.
+
+NOTE: has not tested mainCREATE_SIMPLE_BLINKY_DEMO_ONLY = 0
+If mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is not 1 then the comprehensive test and
+demo application will be built.  The comprehensive test and demo application is
+implemented and described in main_full.c.
+*/
+
+#define mainFPGA 1
+#define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	1
 
 #define PRIM_HART			0
 

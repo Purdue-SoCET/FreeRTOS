@@ -3,6 +3,10 @@
         "stdio.h": "c",
         "string.h": "c",
         "freertos.h": "c",
-        "portable.h": "c"
-    }
+        "portable.h": "c",
+        "riscv-virt.h": "c",
+        "pal.h": "c",
+        "uart.h": "c"
+    },
+    "C_Cpp.dimInactiveRegions": false
 }

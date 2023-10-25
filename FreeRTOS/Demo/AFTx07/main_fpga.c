@@ -33,10 +33,11 @@
 
 /* AFTx07 include*/
 #include "pal.h"
+#include "uart.h"
 
 /* Priorities at which the tasks are created. */
-#define mainBLINK_FAST_TASK_PRIOTIRY		( tskIDLE_PRIORITY + 1 )
-#define	mainBLINK_SLOW_TASK_PRIORITY		( tskIDLE_PRIORITY )
+#define mainBLINK_FAST_TASK_PRIOTIRY		( tskIDLE_PRIORITY + 2 )
+#define	mainBLINK_SLOW_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
 
 /* The rate at which data is sent to the queue.  The times are converted from
 milliseconds to ticks using the pdMS_TO_TICKS() macro. */
@@ -69,12 +70,15 @@ void main_fpga( void )
 const TickType_t xTimerPeriod = mainTIMER_BLINK_SLOW_FREQUENCY_MS;
 
 	printf("Get into main_fpga\n");
+	
+	// Setup UART
+	uart_setup();
 
 	// GPIO set-up
-	// Set all GPIO output
-	GPIO->ddr = 0xFFFFFFFF;
+	GPIO->ddr = 0xFFFFFFFF; // Set all GPIO output
 	GPIO->data = 0;
 	printf("GPIO->ddr = %x\n",GPIO->ddr);
+	
     /* Start the two tasks as described in the comments at the top of this
     file. */
     xTaskCreate( prvBlinkFastTask,			/* The function that implements the task. */

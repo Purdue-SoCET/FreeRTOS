@@ -93,7 +93,7 @@ SECTIONS
 		_bss_lma = LOADADDR(.bss.start);
 	} > RAM
 
-	.bss ALIGN(0x10):
+	.bss :
 	{
 		*(.sbss*)
 		*(.gnu.linkonce.sb.*)
@@ -112,7 +112,7 @@ SECTIONS
 	{
 		. = ALIGN(4);
 		. += __stack_size;
-		. += ALIGN(4);
+		. = ALIGN(16);
 		_stack_top = .;
 	} > RAM
 }

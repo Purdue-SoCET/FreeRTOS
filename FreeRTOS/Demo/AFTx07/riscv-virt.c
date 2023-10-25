@@ -29,7 +29,6 @@
 #include <string.h>
 
 #include "riscv-virt.h"
-// #include "ns16550.h"
 
 int xGetCoreID( void )
 {

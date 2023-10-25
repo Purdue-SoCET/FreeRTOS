@@ -244,26 +244,6 @@ typedef struct {
     __IO uint32_t txdata;
 } UARTRegBlk;
 
-// IO Mux alternate pin functions
-#define IOM_F0_UART_TX  (1<<0)
-#define IOM_F0_UART_RX  (1<<2)
-#define IOM_F0_I2C_SCL  (1<<4)
-#define IOM_F0_I2C_SDA  (1<<6)
-#define IOM_F0_SPI_SS   (1<<8)
-#define IOM_F0_SPI_SCK  (1<<10)
-#define IOM_F0_SPI_MOSI (1<<12)
-#define IOM_F0_SPI_MISO (1<<14)
-#define IOM_F0_PWM0_0   (1<<16)
-#define IOM_F0_PWM0_1   (1<<18)
-#define IOM_F0_TIM0_CC0 (1<<20)
-#define IOM_F0_TIM0_CC1 (1<<22)
-#define IOM_F0_TIM0_CC2 (1<<24)
-#define IOM_F0_TIM0_CC3 (1<<26)
-#define IOM_F0_TIM0_CC4 (1<<28)
-#define IOM_F0_TIM0_CC5 (1<<30)
-#define IOM_F1_TIM0_CC6 (0)
-#define IOM_F1_TIM0_CC7 (0)
-
 // Digital IO Mux register block
 typedef struct {
     __IO uint32_t fsel0;  // pin0-15

@@ -19,7 +19,7 @@ CFLAGS += $(INCLUDE_DIRS) -mstrict-align -fstack-usage -DportasmHANDLE_INTERRUPT
           
 LDFLAGS += -nostartfiles -Xlinker --gc-sections -Wl,-Map,$(OUTPUT_DIR)/RTOSDemo.map \
            -T./fake_rom.ld -march=rv32imc -mabi=ilp32 -mcmodel=medany -Xlinker \
-           --defsym=__stack_size=348 -Wl,--start-group -Wl,--end-group -Wl,--wrap=malloc \
+           --defsym=__stack_size=346 -Wl,--start-group -Wl,--end-group -Wl,--wrap=malloc \
            -Wl,--wrap=free -Wl,--wrap=open -Wl,--wrap=lseek -Wl,--wrap=read -Wl,--wrap=write \
            -Wl,--wrap=fstat -Wl,--wrap=stat -Wl,--wrap=close -Wl,--wrap=link -Wl,--wrap=unlink \
            -Wl,--wrap=execve -Wl,--wrap=fork -Wl,--wrap=getpid -Wl,--wrap=kill -Wl,--wrap=wait \
@@ -99,6 +99,7 @@ SOURCE_FILES += (DEMO_PROJECT)/main_blinky.c
 SOURCE_FILES += (DEMO_PROJECT)/main_fpga.c
 # SOURCE_FILES += (DEMO_PROJECT)/main_full.c
 SOURCE_FILES += (DEMO_PROJECT)/riscv-virt.c
+SOURCE_FILES += (DEMO_PROJECT)/uart.c
 # Lightweight print formatting to use in place of the heavier GCC equivalent.
 SOURCE_FILES += ./printf-stdarg.c
 ASM_SOURCE_FILES += ./start.S
