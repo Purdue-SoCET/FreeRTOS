@@ -18,8 +18,7 @@
  * as a callback function when the software timer expires.
  * 
  * Every task after set the gpio value will read back and print out
- * the value, the print only works for simulation to debug only,
- * it will not show anything on the fpga
+ * the value
  *
  */
 
@@ -41,9 +40,19 @@
 
 /* The rate at which data is sent to the queue.  The times are converted from
 milliseconds to ticks using the pdMS_TO_TICKS() macro. */
-#define mainTASK_BLINK_FAST_FREQUENCY_MS			pdMS_TO_TICKS( 20UL )
-#define mainTIMER_BLINK_SLOW_FREQUENCY_MS			pdMS_TO_TICKS( 200UL )
+#if (SYNTHESIS == 1)
+// For synthesis, we need to scale the time down, e.g: make the task sleep longer
+// Otherwise, the LEDs will blink so fast we can't see they are blinking
+#define mainTASK_BLINK_FAST_FREQUENCY_MS			pdMS_TO_TICKS( 200UL )
+#define mainTIMER_BLINK_SLOW_FREQUENCY_MS			pdMS_TO_TICKS( 2000UL )
 
+#else 
+// For simulation, we need to scale the time up, 
+// otherwise it will takes forever to switch taskes
+#define mainTASK_BLINK_FAST_FREQUENCY_MS			pdMS_TO_TICKS( 2UL )
+#define mainTIMER_BLINK_SLOW_FREQUENCY_MS			pdMS_TO_TICKS( 20UL )
+
+#endif // (SYNTHESIS == 1)
 /*-----------------------------------------------------------*/
 
 /*
@@ -76,7 +85,7 @@ const TickType_t xTimerPeriod = mainTIMER_BLINK_SLOW_FREQUENCY_MS;
 
 	// GPIO set-up
 	GPIO->ddr = 0xFFFFFFFF; // Set all GPIO output
-	GPIO->data = 0;
+	GPIO->data = 0x3;
 	printf("GPIO->ddr = %x\n",GPIO->ddr);
 	
     /* Start the two tasks as described in the comments at the top of this
@@ -138,7 +147,7 @@ TickType_t xNextWakeTime;
 		// After delay, turn off LED1
 		GPIO->data &= ~1;
 
-		printf("read back value: %x - Should have bit 1 clered\n", GPIO->data);
+		printf("read back value: %x - Should have bit 1 cleared\n", GPIO->data);
 	}
 }
 /*-----------------------------------------------------------*/

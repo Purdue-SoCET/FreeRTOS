@@ -23,16 +23,16 @@ demo application will be built.  The comprehensive test and demo application is
 implemented and described in main_full.c.
 */
 
+#define SYNTHESIS 1 // SYNTHESIS macro, 1 for building fpga sysnthesis, 0 for simulation 
 #define mainFPGA 1
 #define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	1
-
-#define PRIM_HART			0
 
 #define CLINT_ADDR			CONS(0x90000000, UL)
 #define CLINT_MSIP			CONS(0x0, UL)
 #define CLINT_MTIME			CONS(0x4, UL)
 #define CLINT_MTIMECMP	    CONS(0xC, UL)
 
+#define PRIM_HART			0
 
 #ifndef __ASSEMBLER__
 

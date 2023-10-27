@@ -81,16 +81,14 @@ void main( void )
 	{
 		main_fpga();
 	}
-	#else
-	#if ( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 )
+	#elif ( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 )
 	{
 		main_blinky();
 	}
-	#else
+	#else //mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1
 	{
 		main_full();
 	}
-	#endif //mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1
 	#endif // ( mainFPGA == 1)
 }
 /*-----------------------------------------------------------*/

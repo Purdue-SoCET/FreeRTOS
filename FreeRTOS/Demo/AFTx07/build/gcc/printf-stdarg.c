@@ -28,7 +28,7 @@
 #include <stdarg.h>
 #include "riscv-virt.h"
 
-#if (mainFPGA == 1)
+#if (SYNTHESIS == 1)
 #include "uart.h"
 #endif
 #define putchar(c)	 *(volatile char *)0xB0000000 = c
@@ -53,10 +53,11 @@ static void printchar(char **str, int c, char *buflimit)
 	else
 	{
 		a_char = (char)c;
-		#if (mainFPGA == 1)
+		#if (SYNTHESIS == 1)
 		uart_sendbyte(a_char);
-		#endif
+		#else
 		putchar(a_char);
+		#endif
 	}
 }
 
