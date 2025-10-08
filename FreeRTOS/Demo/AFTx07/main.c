@@ -25,10 +25,10 @@ static IOMuxRegBlk * const iom = (IOMuxRegBlk *)IO_MUX_BASE;
 static void board_init_uart(void) {
     const uint32_t TX_MASK_2BIT = (3u << 0);
     const uint32_t RX_MASK_2BIT = (3u << 2);
-    iom->fsel0 &= ~(TX_MASK_2BIT | RX_MASK_2BIT);   // 清為 00
-    iom->fsel0 |=  (1u << 0) | (1u << 2);           // 設為 01 (= F0: UART)
+    iom->fsel0 &= ~(TX_MASK_2BIT | RX_MASK_2BIT);   
+    iom->fsel0 |=  (1u << 0) | (1u << 2);           
     uart_setup();                                
-	    // 設 cycles-per-bit，與模擬器一致
+	    // 設 cycles-per-bit
 }
 
 */
