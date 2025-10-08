@@ -14,6 +14,24 @@
 Please read the comment in riscv-virt.h
 */
 
+/*
+
+test
+#include "pal.h"
+#include "uart.h"
+
+static IOMuxRegBlk * const iom = (IOMuxRegBlk *)IO_MUX_BASE;
+
+static void board_init_uart(void) {
+    const uint32_t TX_MASK_2BIT = (3u << 0);
+    const uint32_t RX_MASK_2BIT = (3u << 2);
+    iom->fsel0 &= ~(TX_MASK_2BIT | RX_MASK_2BIT);   // 清為 00
+    iom->fsel0 |=  (1u << 0) | (1u << 2);           // 設為 01 (= F0: UART)
+    uart_setup();                                
+	    // 設 cycles-per-bit，與模擬器一致
+}
+
+*/
 
 /* Set to 1 to use direct mode and set to 0 to use vectored mode.
 VECTOR MODE=Direct --> all traps into machine mode cause the pc to be set to the
@@ -69,6 +87,7 @@ void main( void )
 		__asm__ volatile( "csrw mtvec, %0" :: "r"( ( uintptr_t )freertos_vector_table | 0x1 ) );
 	}
 	#endif
+	//board_init_uart();
 	printf("Get into main\n");
 
 	/* The mainCREATE_SIMPLE_BLINKY_DEMO_ONLY setting is described at the top
@@ -243,13 +262,15 @@ static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 }
 /*-----------------------------------------------------------*/
 
-int __write( int iFile, char *pcString, int iStringLength )
+int __write(int iFile, char *pcString, int iStringLength)
 {
-	/* Avoid compiler warnings about unused parameters. */
-	( void ) iFile;
-
-	printf("%s", pcString);
-	return iStringLength;
+    (void)iFile;
+    for (int i = 0; i < iStringLength; i++) {
+        char c = pcString[i];
+        if (c == '\n') uart_sendbyte('\r'); // 
+        uart_sendbyte(c);
+    }
+    return iStringLength;
 }
 /*-----------------------------------------------------------*/
 

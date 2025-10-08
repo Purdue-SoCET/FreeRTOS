@@ -1,0 +1,4 @@
+./../../../../Demo/AFTx07/main_blinky.c:187:13:prvQueueSendTimerCallback	32	static
+./../../../../Demo/AFTx07/main_blinky.c:157:13:prvQueueSendTask	32	static
+./../../../../Demo/AFTx07/main_blinky.c:207:13:prvQueueReceiveTask	48	static
+./../../../../Demo/AFTx07/main_blinky.c:109:6:main_blinky	16	static

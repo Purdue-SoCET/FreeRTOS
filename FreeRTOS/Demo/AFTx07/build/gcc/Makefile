@@ -14,11 +14,11 @@ OBJDUMP = riscv64-unknown-elf-objdump
 MAKE = make
 
 CFLAGS += $(INCLUDE_DIRS) -mstrict-align -fstack-usage -DportasmHANDLE_INTERRUPT=handle_trap -fmessage-length=0 -static \
-          -march=rv32imc -mabi=ilp32 -mcmodel=medany -ffunction-sections -fdata-sections -ffreestanding\
+          -march=rv32imc_zicsr -mabi=ilp32 -mcmodel=medany -ffunction-sections -fdata-sections -ffreestanding\
           --specs=nano.specs -fno-builtin-printf -Wno-unused-parameter -nostartfiles -g3 -Os
           
 LDFLAGS += -nostartfiles -Xlinker --gc-sections -Wl,-Map,$(OUTPUT_DIR)/RTOSDemo.map \
-           -T./fake_rom.ld -march=rv32imc -mabi=ilp32 -mcmodel=medany -Xlinker \
+           -T./fake_rom.ld -march=rv32imc_zicsr -mabi=ilp32 -mcmodel=medany -Xlinker \
            --defsym=__stack_size=346 -Wl,--start-group -Wl,--end-group -Wl,--wrap=malloc \
            -Wl,--wrap=free -Wl,--wrap=open -Wl,--wrap=lseek -Wl,--wrap=read -Wl,--wrap=write \
            -Wl,--wrap=fstat -Wl,--wrap=stat -Wl,--wrap=close -Wl,--wrap=link -Wl,--wrap=unlink \

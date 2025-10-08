@@ -1,0 +1,13 @@
+./../../../../Demo/AFTx07/main.c:72:6:main_second	0	static
+./../../../../Demo/AFTx07/main.c:77:6:main	16	static
+./../../../../Demo/AFTx07/main.c:115:6:vApplicationMallocFailedHook	16	static
+./../../../../Demo/AFTx07/main.c:136:6:vApplicationIdleHook	0	static
+./../../../../Demo/AFTx07/main.c:150:6:vApplicationStackOverflowHook	16	static
+./../../../../Demo/AFTx07/main.c:164:6:vApplicationTickHook	0	static
+./../../../../Demo/AFTx07/main.c:182:6:vApplicationDaemonTaskStartupHook	0	static
+./../../../../Demo/AFTx07/main.c:191:6:vAssertCalled	32	static
+./../../../../Demo/AFTx07/main.c:218:6:vApplicationGetIdleTaskMemory	0	static
+./../../../../Demo/AFTx07/main.c:243:6:vApplicationGetTimerTaskMemory	0	static
+./../../../../Demo/AFTx07/main.c:265:5:__write	32	static
+./../../../../Demo/AFTx07/main.c:277:7:malloc	16	static
+./../../../../Demo/AFTx07/main.c:291:6:freertos_risc_v_application_exception_handler	16	static
