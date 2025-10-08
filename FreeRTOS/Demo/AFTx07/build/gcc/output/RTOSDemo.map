@@ -1472,33 +1472,33 @@ LOAD /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0
                 0x0000a128       0xa2 ./output/main_fpga.o
                 0x0000a128                main_fpga
  .text.uart_setup
-                0x0000a1ca       0x12 ./output/uart.o
+                0x0000a1ca        0x2 ./output/uart.o
                 0x0000a1ca                uart_setup
  .text.uart_sendbyte
-                0x0000a1dc       0x18 ./output/uart.o
-                0x0000a1dc                uart_sendbyte
+                0x0000a1cc        0xa ./output/uart.o
+                0x0000a1cc                uart_sendbyte
  .text.printchar
-                0x0000a1f4       0x1e ./output/printf-stdarg.o
- .text.prints   0x0000a212       0xb2 ./output/printf-stdarg.o
- .text.printi   0x0000a2c4       0xb6 ./output/printf-stdarg.o
+                0x0000a1d6       0x1e ./output/printf-stdarg.o
+ .text.prints   0x0000a1f4       0xb2 ./output/printf-stdarg.o
+ .text.printi   0x0000a2a6       0xb6 ./output/printf-stdarg.o
  .text.tiny_print
-                0x0000a37a      0x190 ./output/printf-stdarg.o
- .text.printf   0x0000a50a       0x26 ./output/printf-stdarg.o
-                0x0000a50a                printf
- .text          0x0000a530       0xba ./output/portASM.o
-                0x0000a530                pxPortInitialiseStack
-                0x0000a574                xPortStartFirstTask
-                0x0000a5dc                freertos_risc_v_application_interrupt_handler
+                0x0000a35c      0x190 ./output/printf-stdarg.o
+ .text.printf   0x0000a4ec       0x26 ./output/printf-stdarg.o
+                0x0000a4ec                printf
+ .text          0x0000a512       0xba ./output/portASM.o
+                0x0000a512                pxPortInitialiseStack
+                0x0000a556                xPortStartFirstTask
+                0x0000a5be                freertos_risc_v_application_interrupt_handler
  .text.freertos_risc_v_exception_handler
-                0x0000a5ea      0x136 ./output/portASM.o
-                0x0000a5ea                freertos_risc_v_exception_handler
+                0x0000a5cc      0x136 ./output/portASM.o
+                0x0000a5cc                freertos_risc_v_exception_handler
  .text.freertos_risc_v_interrupt_handler
-                0x0000a720       0xc8 ./output/portASM.o
-                0x0000a720                freertos_risc_v_interrupt_handler
+                0x0000a702       0xc8 ./output/portASM.o
+                0x0000a702                freertos_risc_v_interrupt_handler
  .text.freertos_risc_v_mtimer_interrupt_handler
-                0x0000a7e8       0xf8 ./output/portASM.o
-                0x0000a7e8                freertos_risc_v_mtimer_interrupt_handler
- *fill*         0x0000a8e0       0x20 
+                0x0000a7ca       0xf8 ./output/portASM.o
+                0x0000a7ca                freertos_risc_v_mtimer_interrupt_handler
+ *fill*         0x0000a8c2       0x3e 
  .text          0x0000a900       0x80 ./output/vector.o
                 0x0000a900                freertos_vector_table
  .text          0x0000a980       0x4c /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
@@ -1734,7 +1734,7 @@ LOAD /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0
                 0x0000f880                        _stack_top = .
 OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
 
-.debug_info     0x00000000     0x8d2c
+.debug_info     0x00000000     0x8d48
  .debug_info    0x00000000     0x2da7 ./output/tasks.o
  .debug_info    0x00002da7      0x29f ./output/list.o
  .debug_info    0x00003046     0x2628 ./output/queue.o
@@ -1743,15 +1743,15 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_info    0x00007556      0x2c1 ./output/port.o
  .debug_info    0x00007817      0x620 ./output/main.o
  .debug_info    0x00007e37      0x4fc ./output/main_fpga.o
- .debug_info    0x00008333      0x11f ./output/uart.o
- .debug_info    0x00008452      0x639 ./output/printf-stdarg.o
- .debug_info    0x00008a8b       0x23 ./output/portASM.o
- .debug_info    0x00008aae       0x24 ./output/start.o
- .debug_info    0x00008ad2       0x24 ./output/vector.o
- .debug_info    0x00008af6      0x150 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
- .debug_info    0x00008c46       0xe6 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
+ .debug_info    0x00008333      0x13b ./output/uart.o
+ .debug_info    0x0000846e      0x639 ./output/printf-stdarg.o
+ .debug_info    0x00008aa7       0x23 ./output/portASM.o
+ .debug_info    0x00008aca       0x24 ./output/start.o
+ .debug_info    0x00008aee       0x24 ./output/vector.o
+ .debug_info    0x00008b12      0x150 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+ .debug_info    0x00008c62       0xe6 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
 
-.debug_abbrev   0x00000000     0x1acf
+.debug_abbrev   0x00000000     0x1ae3
  .debug_abbrev  0x00000000      0x4bd ./output/tasks.o
  .debug_abbrev  0x000004bd      0x118 ./output/list.o
  .debug_abbrev  0x000005d5      0x3eb ./output/queue.o
@@ -1760,16 +1760,16 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_abbrev  0x0000108d      0x18d ./output/port.o
  .debug_abbrev  0x0000121a      0x261 ./output/main.o
  .debug_abbrev  0x0000147b      0x1d7 ./output/main_fpga.o
- .debug_abbrev  0x00001652       0xc7 ./output/uart.o
- .debug_abbrev  0x00001719      0x242 ./output/printf-stdarg.o
- .debug_abbrev  0x0000195b       0x12 ./output/portASM.o
- .debug_abbrev  0x0000196d       0x14 ./output/start.o
- .debug_abbrev  0x00001981       0x14 ./output/vector.o
- .debug_abbrev  0x00001995       0xca /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
- .debug_abbrev  0x00001a5f       0x70 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
+ .debug_abbrev  0x00001652       0xdb ./output/uart.o
+ .debug_abbrev  0x0000172d      0x242 ./output/printf-stdarg.o
+ .debug_abbrev  0x0000196f       0x12 ./output/portASM.o
+ .debug_abbrev  0x00001981       0x14 ./output/start.o
+ .debug_abbrev  0x00001995       0x14 ./output/vector.o
+ .debug_abbrev  0x000019a9       0xca /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+ .debug_abbrev  0x00001a73       0x70 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
 
 .debug_loclists
-                0x00000000     0x3e9a
+                0x00000000     0x3e75
  .debug_loclists
                 0x00000000     0x15ae ./output/tasks.o
  .debug_loclists
@@ -1787,11 +1787,9 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_loclists
                 0x000036b1       0x3e ./output/main_fpga.o
  .debug_loclists
-                0x000036ef       0x25 ./output/uart.o
+                0x000036ef      0x742 ./output/printf-stdarg.o
  .debug_loclists
-                0x00003714      0x742 ./output/printf-stdarg.o
- .debug_loclists
-                0x00003e56       0x44 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+                0x00003e31       0x44 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
 
 .debug_aranges  0x00000000      0x6b0
  .debug_aranges
@@ -1912,7 +1910,7 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_macro   0x000038ec       0x54 ./output/printf-stdarg.o
  .debug_macro   0x00003940       0x58 ./output/printf-stdarg.o
 
-.debug_line     0x00000000     0xc1ee
+.debug_line     0x00000000     0xc17f
  .debug_line    0x00000000     0x4cdd ./output/tasks.o
  .debug_line    0x00004cdd      0x46e ./output/list.o
  .debug_line    0x0000514b     0x350f ./output/queue.o
@@ -1921,31 +1919,31 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_line    0x0000a5cf      0x2d6 ./output/port.o
  .debug_line    0x0000a8a5      0x535 ./output/main.o
  .debug_line    0x0000adda      0x3bd ./output/main_fpga.o
- .debug_line    0x0000b197      0x10a ./output/uart.o
- .debug_line    0x0000b2a1      0x986 ./output/printf-stdarg.o
- .debug_line    0x0000bc27      0x31d ./output/portASM.o
- .debug_line    0x0000bf44       0xe8 ./output/start.o
- .debug_line    0x0000c02c       0xa4 ./output/vector.o
- .debug_line    0x0000c0d0       0xdf /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
- .debug_line    0x0000c1af       0x3f /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
+ .debug_line    0x0000b197       0x9b ./output/uart.o
+ .debug_line    0x0000b232      0x986 ./output/printf-stdarg.o
+ .debug_line    0x0000bbb8      0x31d ./output/portASM.o
+ .debug_line    0x0000bed5       0xe8 ./output/start.o
+ .debug_line    0x0000bfbd       0xa4 ./output/vector.o
+ .debug_line    0x0000c061       0xdf /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+ .debug_line    0x0000c140       0x3f /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
 
-.debug_str      0x00000000    0x11024
- .debug_str     0x00000000    0x11024 ./output/tasks.o
+.debug_str      0x00000000    0x1102f
+ .debug_str     0x00000000    0x1102f ./output/tasks.o
                                0xdaf6 (size before relaxing)
- .debug_str     0x00011024     0xa85f ./output/list.o
- .debug_str     0x00011024     0xd18c ./output/queue.o
- .debug_str     0x00011024     0xd445 ./output/timers.o
- .debug_str     0x00011024     0xc02c ./output/heap_4.o
- .debug_str     0x00011024     0xba7a ./output/port.o
- .debug_str     0x00011024     0xc36f ./output/main.o
- .debug_str     0x00011024     0xd195 ./output/main_fpga.o
- .debug_str     0x00011024     0x3bdb ./output/uart.o
- .debug_str     0x00011024     0x2b49 ./output/printf-stdarg.o
- .debug_str     0x00011024       0x80 ./output/portASM.o
- .debug_str     0x00011024       0x55 ./output/start.o
- .debug_str     0x00011024       0x70 ./output/vector.o
- .debug_str     0x00011024      0x1d1 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
- .debug_str     0x00011024      0x1b4 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
+ .debug_str     0x0001102f     0xa85f ./output/list.o
+ .debug_str     0x0001102f     0xd18c ./output/queue.o
+ .debug_str     0x0001102f     0xd445 ./output/timers.o
+ .debug_str     0x0001102f     0xc02c ./output/heap_4.o
+ .debug_str     0x0001102f     0xba7a ./output/port.o
+ .debug_str     0x0001102f     0xc36f ./output/main.o
+ .debug_str     0x0001102f     0xd195 ./output/main_fpga.o
+ .debug_str     0x0001102f     0x3be6 ./output/uart.o
+ .debug_str     0x0001102f     0x2b49 ./output/printf-stdarg.o
+ .debug_str     0x0001102f       0x80 ./output/portASM.o
+ .debug_str     0x0001102f       0x55 ./output/start.o
+ .debug_str     0x0001102f       0x70 ./output/vector.o
+ .debug_str     0x0001102f      0x1d1 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+ .debug_str     0x0001102f      0x1b4 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
 
 .debug_line_str
                 0x00000000      0x5e1
