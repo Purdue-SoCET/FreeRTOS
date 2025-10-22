@@ -60,6 +60,7 @@ extern void freertos_vector_table( void );
 extern void main_blinky( void );
 extern void main_full( void );
 extern void main_fpga( void );
+extern void uart_sendbyte(char c);
 
 /*
  * Only the comprehensive demo uses application hook (callback) functions.  See

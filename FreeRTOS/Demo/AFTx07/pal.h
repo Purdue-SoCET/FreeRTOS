@@ -25,7 +25,7 @@
 #define TIMER_BASE          ((uint32_t)0x80002000)
 #define SPI_BASE            ((uint32_t)0x80004000)
 #define IO_MUX_BASE         ((uint32_t)0x80005000)
-#define CLINT_BASE          ((uint32_t)0x90000000)
+#define CLINT_BASE          ((uint32_t)0x90010000)
 #define DMA_BASE            ((uint32_t)0x90001000)
 #define UART_BASE           ((uint32_t)0x90002000)
 #define PLIC_BASE           ((uint32_t)0xA0000000)

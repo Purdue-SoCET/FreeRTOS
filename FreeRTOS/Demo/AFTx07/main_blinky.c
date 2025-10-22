@@ -56,6 +56,8 @@
  * send software timer.
  */
 
+#include <stdint.h>   
+
 /* Standard includes. */
 #include <stdio.h>
 
@@ -103,14 +105,32 @@ static QueueHandle_t xQueue = NULL;
 /* A software timer that is started from the tick hook. */
 static TimerHandle_t xTimer = NULL;
 
+
+
+
+ /* Test varibles */
+static volatile uint32_t g_txCount = 0;       // in TX task
+static volatile uint32_t g_timerCount = 0;    // in timer callback
+static volatile uint32_t g_rxTaskMsgs = 0;    // in RX
+static volatile uint32_t g_rxTimerMsgs = 0;   // in RX
+static int printedOnce = 0;        // print an immediate summary the first time
+static uint32_t rxSincePrint = 0;  // fallback: print every N received msgs
+#define SUMMARY_INTERVAL_TICKS  pdMS_TO_TICKS(200)   // 200 ms instead of 1000
+/*-----------------------------------------------------------*/
+
+static void print_boot_tick_info(void) {
+    /* These prints show the tick rate and what 200 ms converts to. */
+    printf("[BOOT] configTICK_RATE_HZ=%u\n", (unsigned)configTICK_RATE_HZ);
+    printf("[BOOT] SUMMARY_INTERVAL_TICKS=%u\n", (unsigned long)SUMMARY_INTERVAL_TICKS);
+}
 /*-----------------------------------------------------------*/
 
 /*** SEE THE COMMENTS AT THE TOP OF THIS FILE ***/
 void main_blinky( void )
 {
-const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
-
+	const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
 	printf("Get into main_blinky\n");
+	print_boot_tick_info();
 	/* Create the queue. */
 	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
 
@@ -120,7 +140,7 @@ const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
 		file. */
 		xTaskCreate( prvQueueReceiveTask,			/* The function that implements the task. */
 					"Rx", 							/* The text name assigned to the task - for debug only as it is not used by the kernel. */
-					configMINIMAL_STACK_SIZE, 		/* The size of the stack to allocate to the task. */
+					configMINIMAL_STACK_SIZE*3, 	/* The size of the stack to allocate to the task. */
 					NULL, 							/* The parameter passed to the task - not used in this simple case. */
 					mainQUEUE_RECEIVE_TASK_PRIORITY,/* The priority assigned to the task. */
 					NULL );							/* The task handle is not required, so NULL is passed. */
@@ -135,6 +155,11 @@ const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
 								pdTRUE,				/* xAutoReload is set to pdTRUE, so this is an auto-reload timer. */
 								NULL,				/* The timer's ID is not used. */
 								prvQueueSendTimerCallback );/* The function executed when the timer expires. */
+		configASSERT( xTimer != NULL );
+
+		BaseType_t ok = xTimerStart( xTimer, 0 );
+		configASSERT( ok == pdPASS );
+
 		printf("Done created timer task\n");
 
 		xTimerStart( xTimer, 0 ); /* The scheduler has not started so use a block time of 0. */
@@ -204,39 +229,60 @@ const uint32_t ulValueToSend = mainVALUE_SENT_FROM_TIMER;
 }
 /*-----------------------------------------------------------*/
 
+
+
 static void prvQueueReceiveTask( void *pvParameters )
 {
-uint32_t ulReceivedValue;
+    uint32_t ulReceivedValue;
+    TickType_t now;                     // declare at top (C89-friendly)
+    static TickType_t lastPrint = 0;    // keep last print tick
+    static uint32_t sec = 0;            // seconds counter for the banner
 
-	/* Prevent the compiler warning about the unused parameter. */
-	( void ) pvParameters;
+    ( void ) pvParameters;
+	lastPrint = xTaskGetTickCount();
 
-	for( ;; )
-	{
-		/* Wait until something arrives in the queue - this task will block
-		indefinitely provided INCLUDE_vTaskSuspend is set to 1 in
-		FreeRTOSConfig.h.  It will not use any CPU time while it is in the
-		Blocked state. */
-		xQueueReceive( xQueue, &ulReceivedValue, portMAX_DELAY );
+    for( ;; )
+    {
+        /* Block until something arrives. */
+        xQueueReceive( xQueue, &ulReceivedValue, portMAX_DELAY );
 
-		/*  To get here something must have been received from the queue, but
-		is it an expected value? */
-		if( ulReceivedValue == mainVALUE_SENT_FROM_TASK )
-		{
-			/* It is normally not good to call printf() from an embedded system,
-			although it is ok in this simulated case. */
-			printf( "Message received from task\r\n" );
+        if( ulReceivedValue == mainVALUE_SENT_FROM_TASK )
+        {
+			#if ( configUSE_TRACE_FACILITY == 1 )
+    		char listbuf[512];
+    		vTaskList(listbuf);
+    		printf("Tasks:\n%s\n", listbuf);
+    		#endif
+
+            printf( "Message received from task\r\n" );
+        }
+        else if( ulReceivedValue == mainVALUE_SENT_FROM_TIMER )
+        {
+            printf( "Message received from software timer\r\n" );
+        }
+        else
+        {
+            printf( "Unexpected message\r\n" );
+        }
+
+        /* Once-per-second summary */
+        now = xTaskGetTickCount();
+		/* 1) Print once immediately (first time RX runs) */
+		if (!printedOnce) {
+			printedOnce = 1;
+			#if ( configUSE_TRACE_FACILITY == 1 )
+			char listbuf[512];
+			vTaskList(listbuf);
+			printf("Tasks:\n%s\n", listbuf);
+			#endif
 		}
-		else if( ulReceivedValue == mainVALUE_SENT_FROM_TIMER )
-		{
-			printf( "Message received from software timer\r\n" );
-		}
-		else
-		{
-			printf( "Unexpected message\r\n" );
-		}
-	}
+		
+    }
 }
+
+
+
+
 /*-----------------------------------------------------------*/
 
 

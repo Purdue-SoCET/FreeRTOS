@@ -20,3 +20,5 @@
 ./../../../../Source/timers.c:1026:10:vTimerSetTimerID	16	static
 ./../../../../Source/timers.c:1043:20:xTimerPendFunctionCallFromISR	32	static
 ./../../../../Source/timers.c:1070:20:xTimerPendFunctionCall	48	static
+./../../../../Source/timers.c:1102:21:uxTimerGetTimerNumber	0	static
+./../../../../Source/timers.c:1112:14:vTimerSetTimerNumber	0	static

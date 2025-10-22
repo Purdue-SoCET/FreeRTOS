@@ -5,7 +5,7 @@
 ./../../../../Source/queue.c:2275:13:prvUnlockQueue	32	static
 ./../../../../Source/queue.c:292:12:xQueueGenericReset	16	static
 ./../../../../Source/queue.c:361:19:xQueueGenericCreateStatic	48	static
-./../../../../Source/queue.c:424:19:xQueueGenericCreate	16	static
+./../../../../Source/queue.c:424:19:xQueueGenericCreate	32	static
 ./../../../../Source/queue.c:605:18:xQueueGetMutexHolder	16	static
 ./../../../../Source/queue.c:638:18:xQueueGetMutexHolderFromISR	16	static
 ./../../../../Source/queue.c:762:19:xQueueCreateCountingSemaphoreStatic	16	static
@@ -25,6 +25,9 @@
 ./../../../../Source/queue.c:2026:13:uxQueueMessagesWaiting	16	static
 ./../../../../Source/queue.c:2042:13:uxQueueSpacesAvailable	16	static
 ./../../../../Source/queue.c:2059:13:uxQueueMessagesWaitingFromISR	16	static
+./../../../../Source/queue.c:2115:17:uxQueueGetQueueNumber	0	static
+./../../../../Source/queue.c:2125:10:vQueueSetQueueNumber	0	static
+./../../../../Source/queue.c:2136:13:ucQueueGetQueueType	0	static
 ./../../../../Source/queue.c:2416:12:xQueueIsQueueEmptyFromISR	16	static
 ./../../../../Source/queue.c:2457:12:xQueueIsQueueFullFromISR	16	static
 ./../../../../Source/queue.c:2479:10:vQueueAddToRegistry	16	static
