@@ -986,6 +986,14 @@ Discarded input sections
  .text          0x00000000        0x0 ./output/main_blinky.o
  .data          0x00000000        0x0 ./output/main_blinky.o
  .bss           0x00000000        0x0 ./output/main_blinky.o
+ .sbss.g_rxTimerMsgs
+                0x00000000        0x4 ./output/main_blinky.o
+ .sbss.g_rxTaskMsgs
+                0x00000000        0x4 ./output/main_blinky.o
+ .sbss.g_timerCount
+                0x00000000        0x4 ./output/main_blinky.o
+ .sbss.g_txCount
+                0x00000000        0x4 ./output/main_blinky.o
  .debug_macro   0x00000000      0x7ba ./output/main_blinky.o
  .debug_macro   0x00000000      0x34e ./output/main_blinky.o
  .debug_macro   0x00000000       0x22 ./output/main_blinky.o
@@ -1317,7 +1325,7 @@ LOAD /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0
  .init          0x00008400       0x72 ./output/start.o
                 0x00008400                _start
 
-.text           0x00008480     0x2e88
+.text           0x00008480     0x2e08
  *(.text.unlikely .text.unlikely.*)
  *(.text.startup .text.startup.*)
  .text.startup.main
@@ -1507,300 +1515,292 @@ LOAD /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0
                 0x0000a47c       0x28 ./output/main.o
                 0x0000a47c                freertos_risc_v_application_exception_handler
  .text.prvQueueSendTimerCallback
-                0x0000a4a4       0x32 ./output/main_blinky.o
+                0x0000a4a4       0x28 ./output/main_blinky.o
  .text.prvQueueSendTask
-                0x0000a4d6       0x48 ./output/main_blinky.o
+                0x0000a4cc       0x3a ./output/main_blinky.o
  .text.prvQueueReceiveTask
-                0x0000a51e       0xae ./output/main_blinky.o
+                0x0000a506       0x96 ./output/main_blinky.o
  .text.main_blinky
-                0x0000a5cc      0x11c ./output/main_blinky.o
-                0x0000a5cc                main_blinky
+                0x0000a59c      0x11c ./output/main_blinky.o
+                0x0000a59c                main_blinky
  .text.uart_sendbyte
-                0x0000a6e8        0xa ./output/uart.o
-                0x0000a6e8                uart_sendbyte
+                0x0000a6b8        0xa ./output/uart.o
+                0x0000a6b8                uart_sendbyte
  .text.printchar
-                0x0000a6f2       0x1e ./output/printf-stdarg.o
- .text.prints   0x0000a710       0xb4 ./output/printf-stdarg.o
- .text.printi   0x0000a7c4       0xbc ./output/printf-stdarg.o
+                0x0000a6c2       0x1e ./output/printf-stdarg.o
+ .text.prints   0x0000a6e0       0xb4 ./output/printf-stdarg.o
+ .text.printi   0x0000a794       0xbc ./output/printf-stdarg.o
  .text.tiny_print
-                0x0000a880      0x190 ./output/printf-stdarg.o
- .text.printf   0x0000aa10       0x26 ./output/printf-stdarg.o
-                0x0000aa10                printf
- .text.sprintf  0x0000aa36       0x24 ./output/printf-stdarg.o
-                0x0000aa36                sprintf
- .text          0x0000aa5a       0xba ./output/portASM.o
-                0x0000aa5a                pxPortInitialiseStack
-                0x0000aa9e                xPortStartFirstTask
-                0x0000ab06                freertos_risc_v_application_interrupt_handler
+                0x0000a850      0x190 ./output/printf-stdarg.o
+ .text.printf   0x0000a9e0       0x26 ./output/printf-stdarg.o
+                0x0000a9e0                printf
+ .text.sprintf  0x0000aa06       0x24 ./output/printf-stdarg.o
+                0x0000aa06                sprintf
+ .text          0x0000aa2a       0xba ./output/portASM.o
+                0x0000aa2a                pxPortInitialiseStack
+                0x0000aa6e                xPortStartFirstTask
+                0x0000aad6                freertos_risc_v_application_interrupt_handler
  .text.freertos_risc_v_exception_handler
-                0x0000ab14      0x136 ./output/portASM.o
-                0x0000ab14                freertos_risc_v_exception_handler
+                0x0000aae4      0x136 ./output/portASM.o
+                0x0000aae4                freertos_risc_v_exception_handler
  .text.freertos_risc_v_interrupt_handler
-                0x0000ac4a       0xc8 ./output/portASM.o
-                0x0000ac4a                freertos_risc_v_interrupt_handler
+                0x0000ac1a       0xc8 ./output/portASM.o
+                0x0000ac1a                freertos_risc_v_interrupt_handler
  .text.freertos_risc_v_mtimer_interrupt_handler
-                0x0000ad12       0xf8 ./output/portASM.o
-                0x0000ad12                freertos_risc_v_mtimer_interrupt_handler
- *fill*         0x0000ae0a       0x76 
- .text          0x0000ae80       0x80 ./output/vector.o
-                0x0000ae80                freertos_vector_table
- .text          0x0000af00       0x4c /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
-                0x0000af00                __clzsi2
- .text          0x0000af4c       0xdc /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/lib/rv32im/ilp32/libc.a(libc_a-memset.o)
-                0x0000af4c                memset
- .text.memcpy   0x0000b028      0x1a4 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/lib/rv32im/ilp32/libc.a(libc_a-memcpy.o)
-                0x0000b028                memcpy
- .text.strlen   0x0000b1cc       0x8c /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/lib/rv32im/ilp32/libc.a(libc_a-strlen.o)
-                0x0000b1cc                strlen
- .text.strcpy   0x0000b258       0xb0 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/lib/rv32im/ilp32/libc.a(libc_a-strcpy.o)
-                0x0000b258                strcpy
+                0x0000ace2       0xf8 ./output/portASM.o
+                0x0000ace2                freertos_risc_v_mtimer_interrupt_handler
+ *fill*         0x0000adda       0x26 
+ .text          0x0000ae00       0x80 ./output/vector.o
+                0x0000ae00                freertos_vector_table
+ .text          0x0000ae80       0x4c /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+                0x0000ae80                __clzsi2
+ .text          0x0000aecc       0xdc /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/lib/rv32im/ilp32/libc.a(libc_a-memset.o)
+                0x0000aecc                memset
+ .text.memcpy   0x0000afa8      0x1a4 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/lib/rv32im/ilp32/libc.a(libc_a-memcpy.o)
+                0x0000afa8                memcpy
+ .text.strlen   0x0000b14c       0x8c /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/lib/rv32im/ilp32/libc.a(libc_a-strlen.o)
+                0x0000b14c                strlen
+ .text.strcpy   0x0000b1d8       0xb0 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/lib/rv32im/ilp32/libc.a(libc_a-strcpy.o)
+                0x0000b1d8                strcpy
  *(.gnu.linkonce.t.*)
 
-.fini           0x0000b308        0x0
+.fini           0x0000b288        0x0
  *(SORT_NONE(.fini))
-                0x0000b308                        _etext = .
+                0x0000b288                        _etext = .
 
-.rodata.align   0x0000b308        0x0
-                0x0000b308                        . = ALIGN (0x4)
-                0x0000b308                        _rodata = .
+.rodata.align   0x0000b288        0x0
+                0x0000b288                        . = ALIGN (0x4)
+                0x0000b288                        _rodata = .
 
-.rodata.start   0x0000b308        0x0
-                0x0000b308                        _rodata_lma = LOADADDR (.rodata.start)
+.rodata.start   0x0000b288        0x0
+                0x0000b288                        _rodata_lma = LOADADDR (.rodata.start)
 
-.rodata         0x0000b308      0x444
+.rodata         0x0000b288      0x42c
  *(.rdata)
  *(.rodata .rodata.*)
  .rodata.prvTaskIsTaskSuspended.str1.4
-                0x0000b308      0x31f ./output/tasks.o
+                0x0000b288      0x307 ./output/tasks.o
                                  0x1d (size before relaxing)
  .rodata.vTaskStartScheduler.str1.4
-                0x0000b627        0x5 ./output/tasks.o
+                0x0000b58f        0x5 ./output/tasks.o
  .rodata.vTaskList.str1.4
-                0x0000b627        0xf ./output/tasks.o
+                0x0000b58f        0xf ./output/tasks.o
  .rodata.prvNotifyQueueSetContainer.str1.4
-                0x0000b627       0x1d ./output/queue.o
+                0x0000b58f       0x1d ./output/queue.o
  .rodata.prvTimerTask.str1.4
-                0x0000b627       0x1e ./output/timers.o
- *fill*         0x0000b627        0x1 
+                0x0000b58f       0x1e ./output/timers.o
+ *fill*         0x0000b58f        0x1 
  .rodata.prvTimerTask
-                0x0000b628       0x24 ./output/timers.o
+                0x0000b590       0x24 ./output/timers.o
  .rodata.prvCheckForValidListAndQueue.str1.4
-                0x0000b64c        0x5 ./output/timers.o
+                0x0000b5b4        0x5 ./output/timers.o
  .rodata.xTimerCreateTimerTask.str1.4
-                0x0000b64c        0x8 ./output/timers.o
+                0x0000b5b4        0x8 ./output/timers.o
  .rodata.pvPortMalloc.str1.4
-                0x0000b64c       0x2f ./output/heap_4.o
+                0x0000b5b4       0x2f ./output/heap_4.o
  .rodata.main.str1.4
-                0x0000b64c        0xf ./output/main.o
+                0x0000b5b4        0xf ./output/main.o
  .rodata.vApplicationMallocFailedHook.str1.4
-                0x0000b64c       0x14 ./output/main.o
+                0x0000b5b4       0x14 ./output/main.o
  .rodata.vApplicationStackOverflowHook.str1.4
-                0x0000b64c       0x1b ./output/main.o
+                0x0000b5b4       0x1b ./output/main.o
  .rodata.vAssertCalled.str1.4
-                0x0000b64c       0x1b ./output/main.o
+                0x0000b5b4       0x1b ./output/main.o
  .rodata.freertos_risc_v_application_exception_handler.str1.4
-                0x0000b64c       0x47 ./output/main.o
+                0x0000b5b4       0x47 ./output/main.o
  .rodata.prvQueueSendTimerCallback.str1.4
-                0x0000b64c        0xf ./output/main_blinky.o
+                0x0000b5b4        0xf ./output/main_blinky.o
  .rodata.prvQueueSendTask.str1.4
-                0x0000b64c        0xe ./output/main_blinky.o
+                0x0000b5b4        0xe ./output/main_blinky.o
  .rodata.prvQueueReceiveTask.str1.4
-                0x0000b64c       0x69 ./output/main_blinky.o
+                0x0000b5b4       0x69 ./output/main_blinky.o
  .rodata.main_blinky.str1.4
-                0x0000b64c      0x12c ./output/main_blinky.o
+                0x0000b5b4      0x114 ./output/main_blinky.o
  .rodata.tiny_print.str1.4
-                0x0000b64c        0x7 ./output/printf-stdarg.o
- .rodata        0x0000b64c      0x100 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
-                0x0000b64c                __clz_tab
+                0x0000b5b4        0x7 ./output/printf-stdarg.o
+ .rodata        0x0000b5b4      0x100 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
+                0x0000b5b4                __clz_tab
  *(.gnu.linkonce.r.*)
-                0x0000b778                        . = ALIGN (0x4)
-                0x0000b74c                        _erodata = .
+                0x0000b6c8                        . = ALIGN (0x4)
+                0x0000b6b4                        _erodata = .
 
-.rela.dyn       0x0000b74c        0x0
- .rela.init     0x0000b74c        0x0 ./output/tasks.o
+.rela.dyn       0x0000b6b4        0x0
+ .rela.init     0x0000b6b4        0x0 ./output/tasks.o
 
-.data.align     0x0000b74c        0x0
-                0x0000b74c                        . = ALIGN (0x4)
-                0x0000b74c                        _data = .
+.data.align     0x0000b6b4        0x0
+                0x0000b6b4                        . = ALIGN (0x4)
+                0x0000b6b4                        _data = .
 
-.data.start     0x0000b74c        0x0
-                0x0000b74c                        _data_lma = LOADADDR (.data.start)
+.data.start     0x0000b6b4        0x0
+                0x0000b6b4                        _data_lma = LOADADDR (.data.start)
 
-.data           0x0000b74c       0x28
+.data           0x0000b6b4       0x28
  *(.data .data.*)
  *(.gnu.linkonce.d.*)
-                0x0000b750                        . = ALIGN (0x8)
- *fill*         0x0000b74c        0x4 
-                0x0000bf50                        PROVIDE (__global_pointer$ = (. + 0x800))
+                0x0000b6b8                        . = ALIGN (0x8)
+ *fill*         0x0000b6b4        0x4 
+                0x0000beb8                        PROVIDE (__global_pointer$ = (. + 0x800))
  *(.sdata .sdata.*)
  .sdata.pxCriticalNesting
-                0x0000b750        0x4 ./output/port.o
-                0x0000b750                pxCriticalNesting
+                0x0000b6b8        0x4 ./output/port.o
+                0x0000b6b8                pxCriticalNesting
  .sdata.xCriticalNesting
-                0x0000b754        0x4 ./output/port.o
-                0x0000b754                xCriticalNesting
+                0x0000b6bc        0x4 ./output/port.o
+                0x0000b6bc                xCriticalNesting
  .sdata.pullNextTime
-                0x0000b758        0x4 ./output/port.o
-                0x0000b758                pullNextTime
+                0x0000b6c0        0x4 ./output/port.o
+                0x0000b6c0                pullNextTime
  *(.sdata2 .sdata2.*)
  *(.gnu.linkonce.s.*)
-                0x0000b760                        . = ALIGN (0x8)
- *fill*         0x0000b75c        0x4 
+                0x0000b6c8                        . = ALIGN (0x8)
+ *fill*         0x0000b6c4        0x4 
  *(.srodata.cst16)
  *(.srodata.cst8)
  *(.srodata.cst4)
  *(.srodata.cst2)
  *(.srodata .srodata.*)
  .srodata.CSWTCH.308
-                0x0000b760        0x5 ./output/tasks.o
- *fill*         0x0000b765        0x3 
+                0x0000b6c8        0x5 ./output/tasks.o
+ *fill*         0x0000b6cd        0x3 
  .srodata.uxTopUsedPriority
-                0x0000b768        0x4 ./output/tasks.o
-                0x0000b768                uxTopUsedPriority
+                0x0000b6d0        0x4 ./output/tasks.o
+                0x0000b6d0                uxTopUsedPriority
  .srodata.uxTimerIncrementsForOneTick
-                0x0000b76c        0x4 ./output/port.o
-                0x0000b76c                uxTimerIncrementsForOneTick
+                0x0000b6d4        0x4 ./output/port.o
+                0x0000b6d4                uxTimerIncrementsForOneTick
  .srodata.xISRStackTop
-                0x0000b770        0x4 ./output/port.o
-                0x0000b770                xISRStackTop
-                0x0000b774                        . = ALIGN (0x4)
-                0x0000b774                        _edata = .
+                0x0000b6d8        0x4 ./output/port.o
+                0x0000b6d8                xISRStackTop
+                0x0000b6dc                        . = ALIGN (0x4)
+                0x0000b6dc                        _edata = .
 
-.bss.align      0x0000b774        0x0
-                0x0000b774                        . = ALIGN (0x4)
-                0x0000b774                        _bss = .
+.bss.align      0x0000b6dc        0x0
+                0x0000b6dc                        . = ALIGN (0x4)
+                0x0000b6dc                        _bss = .
 
-.bss.start      0x0000b774        0x0
-                0x0000b774                        _bss_lma = LOADADDR (.bss.start)
+.bss.start      0x0000b6dc        0x0
+                0x0000b6dc                        _bss_lma = LOADADDR (.bss.start)
 
-.bss            0x0000b780     0x46d8
+.bss            0x0000b6e0     0x46c8
  *(.sbss*)
  .sbss.uxSchedulerSuspended
-                0x0000b780        0x4 ./output/tasks.o
+                0x0000b6e0        0x4 ./output/tasks.o
  .sbss.xIdleTaskHandle
-                0x0000b784        0x4 ./output/tasks.o
+                0x0000b6e4        0x4 ./output/tasks.o
  .sbss.xNextTaskUnblockTime
-                0x0000b788        0x4 ./output/tasks.o
+                0x0000b6e8        0x4 ./output/tasks.o
  .sbss.uxTaskNumber
-                0x0000b78c        0x4 ./output/tasks.o
+                0x0000b6ec        0x4 ./output/tasks.o
  .sbss.xNumOfOverflows
-                0x0000b790        0x4 ./output/tasks.o
+                0x0000b6f0        0x4 ./output/tasks.o
  .sbss.xYieldPending
-                0x0000b794        0x4 ./output/tasks.o
+                0x0000b6f4        0x4 ./output/tasks.o
  .sbss.xPendedTicks
-                0x0000b798        0x4 ./output/tasks.o
+                0x0000b6f8        0x4 ./output/tasks.o
  .sbss.xSchedulerRunning
-                0x0000b79c        0x4 ./output/tasks.o
+                0x0000b6fc        0x4 ./output/tasks.o
  .sbss.uxTopReadyPriority
-                0x0000b7a0        0x4 ./output/tasks.o
+                0x0000b700        0x4 ./output/tasks.o
  .sbss.xTickCount
-                0x0000b7a4        0x4 ./output/tasks.o
+                0x0000b704        0x4 ./output/tasks.o
  .sbss.uxCurrentNumberOfTasks
-                0x0000b7a8        0x4 ./output/tasks.o
+                0x0000b708        0x4 ./output/tasks.o
  .sbss.uxDeletedTasksWaitingCleanUp
-                0x0000b7ac        0x4 ./output/tasks.o
+                0x0000b70c        0x4 ./output/tasks.o
  .sbss.pxOverflowDelayedTaskList
-                0x0000b7b0        0x4 ./output/tasks.o
+                0x0000b710        0x4 ./output/tasks.o
  .sbss.pxDelayedTaskList
-                0x0000b7b4        0x4 ./output/tasks.o
+                0x0000b714        0x4 ./output/tasks.o
  .sbss.pxCurrentTCB
-                0x0000b7b8        0x4 ./output/tasks.o
-                0x0000b7b8                pxCurrentTCB
+                0x0000b718        0x4 ./output/tasks.o
+                0x0000b718                pxCurrentTCB
  .sbss.xLastTime.2
-                0x0000b7bc        0x4 ./output/timers.o
+                0x0000b71c        0x4 ./output/timers.o
  .sbss.xTimerTaskHandle
-                0x0000b7c0        0x4 ./output/timers.o
+                0x0000b720        0x4 ./output/timers.o
  .sbss.xTimerQueue
-                0x0000b7c4        0x4 ./output/timers.o
+                0x0000b724        0x4 ./output/timers.o
  .sbss.pxOverflowTimerList
-                0x0000b7c8        0x4 ./output/timers.o
+                0x0000b728        0x4 ./output/timers.o
  .sbss.pxCurrentTimerList
-                0x0000b7cc        0x4 ./output/timers.o
+                0x0000b72c        0x4 ./output/timers.o
  .sbss.xNumberOfSuccessfulFrees
-                0x0000b7d0        0x4 ./output/heap_4.o
+                0x0000b730        0x4 ./output/heap_4.o
  .sbss.xNumberOfSuccessfulAllocations
-                0x0000b7d4        0x4 ./output/heap_4.o
+                0x0000b734        0x4 ./output/heap_4.o
  .sbss.xMinimumEverFreeBytesRemaining
-                0x0000b7d8        0x4 ./output/heap_4.o
+                0x0000b738        0x4 ./output/heap_4.o
  .sbss.xFreeBytesRemaining
-                0x0000b7dc        0x4 ./output/heap_4.o
- .sbss.pxEnd    0x0000b7e0        0x4 ./output/heap_4.o
- .sbss.xStart   0x0000b7e4        0x8 ./output/heap_4.o
+                0x0000b73c        0x4 ./output/heap_4.o
+ .sbss.pxEnd    0x0000b740        0x4 ./output/heap_4.o
+ .sbss.xStart   0x0000b744        0x8 ./output/heap_4.o
  .sbss.xTaskReturnAddress
-                0x0000b7ec        0x4 ./output/port.o
-                0x0000b7ec                xTaskReturnAddress
+                0x0000b74c        0x4 ./output/port.o
+                0x0000b74c                xTaskReturnAddress
  .sbss.pullMachineTimerCompareRegister
-                0x0000b7f0        0x4 ./output/port.o
-                0x0000b7f0                pullMachineTimerCompareRegister
- *fill*         0x0000b7f4        0x4 
+                0x0000b750        0x4 ./output/port.o
+                0x0000b750                pullMachineTimerCompareRegister
+ *fill*         0x0000b754        0x4 
  .sbss.ullNextTime
-                0x0000b7f8        0x8 ./output/port.o
-                0x0000b7f8                ullNextTime
+                0x0000b758        0x8 ./output/port.o
+                0x0000b758                ullNextTime
  .sbss.printedOnce
-                0x0000b800        0x4 ./output/main_blinky.o
- .sbss.g_rxTimerMsgs
-                0x0000b804        0x4 ./output/main_blinky.o
- .sbss.g_rxTaskMsgs
-                0x0000b808        0x4 ./output/main_blinky.o
- .sbss.g_timerCount
-                0x0000b80c        0x4 ./output/main_blinky.o
- .sbss.g_txCount
-                0x0000b810        0x4 ./output/main_blinky.o
- .sbss.xTimer   0x0000b814        0x4 ./output/main_blinky.o
- .sbss.xQueue   0x0000b818        0x4 ./output/main_blinky.o
+                0x0000b760        0x4 ./output/main_blinky.o
+ .sbss.xTimer   0x0000b764        0x4 ./output/main_blinky.o
+ .sbss.xQueue   0x0000b768        0x4 ./output/main_blinky.o
  *(.gnu.linkonce.sb.*)
  *(.bss .bss.*)
  .bss.xSuspendedTaskList
-                0x0000b81c       0x14 ./output/tasks.o
+                0x0000b76c       0x14 ./output/tasks.o
  .bss.xTasksWaitingTermination
-                0x0000b830       0x14 ./output/tasks.o
+                0x0000b780       0x14 ./output/tasks.o
  .bss.xPendingReadyList
-                0x0000b844       0x14 ./output/tasks.o
+                0x0000b794       0x14 ./output/tasks.o
  .bss.xDelayedTaskList2
-                0x0000b858       0x14 ./output/tasks.o
+                0x0000b7a8       0x14 ./output/tasks.o
  .bss.xDelayedTaskList1
-                0x0000b86c       0x14 ./output/tasks.o
+                0x0000b7bc       0x14 ./output/tasks.o
  .bss.pxReadyTasksLists
-                0x0000b880       0xb4 ./output/tasks.o
+                0x0000b7d0       0xb4 ./output/tasks.o
  .bss.xQueueRegistry
-                0x0000b934       0x50 ./output/queue.o
-                0x0000b934                xQueueRegistry
+                0x0000b884       0x50 ./output/queue.o
+                0x0000b884                xQueueRegistry
  .bss.xStaticTimerQueue.0
-                0x0000b984       0x54 ./output/timers.o
+                0x0000b8d4       0x54 ./output/timers.o
  .bss.ucStaticTimerQueueStorage.1
-                0x0000b9d8      0x140 ./output/timers.o
+                0x0000b928      0x140 ./output/timers.o
  .bss.xActiveTimerList2
-                0x0000bb18       0x14 ./output/timers.o
+                0x0000ba68       0x14 ./output/timers.o
  .bss.xActiveTimerList1
-                0x0000bb2c       0x14 ./output/timers.o
- .bss.ucHeap    0x0000bb40     0x3800 ./output/heap_4.o
+                0x0000ba7c       0x14 ./output/timers.o
+ .bss.ucHeap    0x0000ba90     0x3800 ./output/heap_4.o
  .bss.xISRStack
-                0x0000f340      0x4b0 ./output/port.o
+                0x0000f290      0x4b0 ./output/port.o
  .bss.uxTimerTaskStack.0
-                0x0000f7f0      0x3c0 ./output/main.o
+                0x0000f740      0x3c0 ./output/main.o
  .bss.xTimerTaskTCB.1
-                0x0000fbb0       0x64 ./output/main.o
+                0x0000fb00       0x64 ./output/main.o
  .bss.uxIdleTaskStack.2
-                0x0000fc14      0x1e0 ./output/main.o
+                0x0000fb64      0x1e0 ./output/main.o
  .bss.xIdleTaskTCB.3
-                0x0000fdf4       0x64 ./output/main.o
+                0x0000fd44       0x64 ./output/main.o
  *(.gnu.linkonce.b.*)
  *(COMMON)
-                0x0000fe58                        . = ALIGN (0x4)
-                0x0000fe58                        _ebss = .
-                0x0000fe58                        . = ALIGN (0x8)
-                0x0000fe58                        _end = .
+                0x0000fda8                        . = ALIGN (0x4)
+                0x0000fda8                        _ebss = .
+                0x0000fda8                        . = ALIGN (0x8)
+                0x0000fda8                        _end = .
 
-.stack          0x0000fe58      0x168
-                0x0000fe58                        . = ALIGN (0x4)
-                0x0000ffb2                        . = (. + __stack_size)
- *fill*         0x0000fe58      0x15a 
-                0x0000ffc0                        . = ALIGN (0x10)
- *fill*         0x0000ffb2        0xe 
-                0x0000ffc0                        _stack_top = .
+.stack          0x0000fda8      0x168
+                0x0000fda8                        . = ALIGN (0x4)
+                0x0000ff02                        . = (. + __stack_size)
+ *fill*         0x0000fda8      0x15a 
+                0x0000ff10                        . = ALIGN (0x10)
+ *fill*         0x0000ff02        0xe 
+                0x0000ff10                        _stack_top = .
 OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
 
-.debug_info     0x00000000     0x97d7
+.debug_info     0x00000000     0x97cd
  .debug_info    0x00000000     0x33c5 ./output/tasks.o
  .debug_info    0x000033c5      0x29f ./output/list.o
  .debug_info    0x00003664     0x26e1 ./output/queue.o
@@ -1808,16 +1808,16 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_info    0x000076cb      0x603 ./output/heap_4.o
  .debug_info    0x00007cce      0x2c1 ./output/port.o
  .debug_info    0x00007f8f      0x608 ./output/main.o
- .debug_info    0x00008597      0x82b ./output/main_blinky.o
- .debug_info    0x00008dc2      0x13b ./output/uart.o
- .debug_info    0x00008efd      0x639 ./output/printf-stdarg.o
- .debug_info    0x00009536       0x23 ./output/portASM.o
- .debug_info    0x00009559       0x24 ./output/start.o
- .debug_info    0x0000957d       0x24 ./output/vector.o
- .debug_info    0x000095a1      0x150 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
- .debug_info    0x000096f1       0xe6 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
+ .debug_info    0x00008597      0x821 ./output/main_blinky.o
+ .debug_info    0x00008db8      0x13b ./output/uart.o
+ .debug_info    0x00008ef3      0x639 ./output/printf-stdarg.o
+ .debug_info    0x0000952c       0x23 ./output/portASM.o
+ .debug_info    0x0000954f       0x24 ./output/start.o
+ .debug_info    0x00009573       0x24 ./output/vector.o
+ .debug_info    0x00009597      0x150 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+ .debug_info    0x000096e7       0xe6 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
 
-.debug_abbrev   0x00000000     0x1b50
+.debug_abbrev   0x00000000     0x1b59
  .debug_abbrev  0x00000000      0x4d7 ./output/tasks.o
  .debug_abbrev  0x000004d7      0x118 ./output/list.o
  .debug_abbrev  0x000005ef      0x3eb ./output/queue.o
@@ -1825,14 +1825,14 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_abbrev  0x00000e0d      0x2ab ./output/heap_4.o
  .debug_abbrev  0x000010b8      0x18d ./output/port.o
  .debug_abbrev  0x00001245      0x252 ./output/main.o
- .debug_abbrev  0x00001497      0x228 ./output/main_blinky.o
- .debug_abbrev  0x000016bf       0xdb ./output/uart.o
- .debug_abbrev  0x0000179a      0x242 ./output/printf-stdarg.o
- .debug_abbrev  0x000019dc       0x12 ./output/portASM.o
- .debug_abbrev  0x000019ee       0x14 ./output/start.o
- .debug_abbrev  0x00001a02       0x14 ./output/vector.o
- .debug_abbrev  0x00001a16       0xca /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
- .debug_abbrev  0x00001ae0       0x70 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
+ .debug_abbrev  0x00001497      0x231 ./output/main_blinky.o
+ .debug_abbrev  0x000016c8       0xdb ./output/uart.o
+ .debug_abbrev  0x000017a3      0x242 ./output/printf-stdarg.o
+ .debug_abbrev  0x000019e5       0x12 ./output/portASM.o
+ .debug_abbrev  0x000019f7       0x14 ./output/start.o
+ .debug_abbrev  0x00001a0b       0x14 ./output/vector.o
+ .debug_abbrev  0x00001a1f       0xca /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+ .debug_abbrev  0x00001ae9       0x70 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
 
 .debug_loclists
                 0x00000000     0x42c1
@@ -1890,7 +1890,7 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
                 0x000006f8       0x18 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
 
 .debug_rnglists
-                0x00000000      0x845
+                0x00000000      0x851
  .debug_rnglists
                 0x00000000      0x369 ./output/tasks.o
  .debug_rnglists
@@ -1906,15 +1906,15 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_rnglists
                 0x000006fd       0x76 ./output/main.o
  .debug_rnglists
-                0x00000773       0x27 ./output/main_blinky.o
+                0x00000773       0x33 ./output/main_blinky.o
  .debug_rnglists
-                0x0000079a       0x19 ./output/uart.o
+                0x000007a6       0x19 ./output/uart.o
  .debug_rnglists
-                0x000007b3       0x4c ./output/printf-stdarg.o
+                0x000007bf       0x4c ./output/printf-stdarg.o
  .debug_rnglists
-                0x000007ff       0x30 ./output/portASM.o
+                0x0000080b       0x30 ./output/portASM.o
  .debug_rnglists
-                0x0000082f       0x16 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+                0x0000083b       0x16 /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
 
 .debug_macro    0x00000000     0x39fd
  .debug_macro   0x00000000      0x2b9 ./output/tasks.o
@@ -1980,7 +1980,7 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_macro   0x00003951       0x54 ./output/printf-stdarg.o
  .debug_macro   0x000039a5       0x58 ./output/printf-stdarg.o
 
-.debug_line     0x00000000     0xcba7
+.debug_line     0x00000000     0xcb0f
  .debug_line    0x00000000     0x54bf ./output/tasks.o
  .debug_line    0x000054bf      0x46e ./output/list.o
  .debug_line    0x0000592d     0x35af ./output/queue.o
@@ -1988,14 +1988,14 @@ OUTPUT(./output/RTOSDemo.elf elf32-littleriscv)
  .debug_line    0x0000a395      0xb0c ./output/heap_4.o
  .debug_line    0x0000aea1      0x2be ./output/port.o
  .debug_line    0x0000b15f      0x535 ./output/main.o
- .debug_line    0x0000b694      0x52b ./output/main_blinky.o
- .debug_line    0x0000bbbf       0x9b ./output/uart.o
- .debug_line    0x0000bc5a      0x986 ./output/printf-stdarg.o
- .debug_line    0x0000c5e0      0x31d ./output/portASM.o
- .debug_line    0x0000c8fd       0xe8 ./output/start.o
- .debug_line    0x0000c9e5       0xa4 ./output/vector.o
- .debug_line    0x0000ca89       0xdf /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
- .debug_line    0x0000cb68       0x3f /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
+ .debug_line    0x0000b694      0x493 ./output/main_blinky.o
+ .debug_line    0x0000bb27       0x9b ./output/uart.o
+ .debug_line    0x0000bbc2      0x986 ./output/printf-stdarg.o
+ .debug_line    0x0000c548      0x31d ./output/portASM.o
+ .debug_line    0x0000c865       0xe8 ./output/start.o
+ .debug_line    0x0000c94d       0xa4 ./output/vector.o
+ .debug_line    0x0000c9f1       0xdf /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clzsi2.o)
+ .debug_line    0x0000cad0       0x3f /package/asicfab/riscv-gcc/13.2.0/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/rv32im/ilp32/libgcc.a(_clz.o)
 
 .debug_str      0x00000000    0x1134d
  .debug_str     0x00000000    0x1134d ./output/tasks.o

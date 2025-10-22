@@ -115,13 +115,13 @@ static volatile uint32_t g_rxTaskMsgs = 0;    // in RX
 static volatile uint32_t g_rxTimerMsgs = 0;   // in RX
 static int printedOnce = 0;        // print an immediate summary the first time
 static uint32_t rxSincePrint = 0;  // fallback: print every N received msgs
-#define SUMMARY_INTERVAL_TICKS  pdMS_TO_TICKS(200)   // 200 ms instead of 1000
+#define SUMMARY_INTERVAL_TICKS  pdMS_TO_TICKS(200)
 /*-----------------------------------------------------------*/
 
 static void print_boot_tick_info(void) {
     /* These prints show the tick rate and what 200 ms converts to. */
-    printf("[BOOT] configTICK_RATE_HZ=%u\n", (unsigned)configTICK_RATE_HZ);
-    printf("[BOOT] SUMMARY_INTERVAL_TICKS=%u\n", (unsigned long)SUMMARY_INTERVAL_TICKS);
+    printf("configTICK_RATE_HZ=%u\n", (unsigned)configTICK_RATE_HZ);
+    printf("INTERVAL_TICKS=%u\n", (unsigned long)SUMMARY_INTERVAL_TICKS);
 }
 /*-----------------------------------------------------------*/
 
@@ -234,9 +234,9 @@ const uint32_t ulValueToSend = mainVALUE_SENT_FROM_TIMER;
 static void prvQueueReceiveTask( void *pvParameters )
 {
     uint32_t ulReceivedValue;
-    TickType_t now;                     // declare at top (C89-friendly)
-    static TickType_t lastPrint = 0;    // keep last print tick
-    static uint32_t sec = 0;            // seconds counter for the banner
+    TickType_t now;
+    static TickType_t lastPrint = 0;   
+    static uint32_t sec = 0;           
 
     ( void ) pvParameters;
 	lastPrint = xTaskGetTickCount();
