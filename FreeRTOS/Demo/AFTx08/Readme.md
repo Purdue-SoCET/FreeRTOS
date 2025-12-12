@@ -62,7 +62,7 @@ Copy RTOSDemo.bin into the main AFT-dev repository and rename it to meminit.bin,
 
 ## How to run
 
-**NOTE:** Run the simulator from the AFTx08 top-level directory, not from the FreeRTOS demo directory.
+**NOTE:** Run the simulator from the AFTx08 directory, not from the FreeRTOS demo directory.
 Ensure Verilator was built with sufficient RAM (refer to the AFT-dev).
 ```
 $ ./aft_out/sim-verilator/xxxx
