@@ -53,7 +53,7 @@ $ make -C build/gcc/ clean
 If the build is successful, RTOSDemo.bin will be generated in:
 
 ```
-build/gcc/output/RTOSDemo.bin
+$ build/gcc/output/RTOSDemo.bin
 ```
 
 3. Prepare meminit.bin for AFTx08
