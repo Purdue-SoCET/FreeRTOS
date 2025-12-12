@@ -74,6 +74,25 @@ $ ./aft_out/sim-verilator/Vaftx07
 This demo prints transmit and receive messages from a FreeRTOS queue to the UART (serial output).
 Only the primary core (typically hart 0) is used. All other cores enter the wfi state and do not execute additional tasks.
 
+
+# Emulating FreeRTOS on AFTx08 on FPGA
+
+For FPGA
+
+FPGA execution requires converting the FreeRTOS binary into a memory initialization file.
+
+1. Copy RTOSDemo.bin into the AFT-dev repository.
+2. Use the provided bin_to_mif script to convert the binary:
+```
+$ ./bin_to_mif RTOSDemo.bin meminit.mif
+```
+3. Replace the existing memory initialization file with the generated meminit.mif.
+4. Rebuild the FPGA project if required.
+5. Upload (program) the bitstream to the FPGA board.
+
+After programming, the FreeRTOS application will start automatically.
+
+
 ## For future revs of AFTx
 
 Notes for Future AFTx Revisions
