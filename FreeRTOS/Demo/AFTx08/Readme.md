@@ -26,20 +26,18 @@ $ wget https://static.dev.sifive.com/dev-tools/freedom-tools/v2020.08/riscv64-un
 
 ## How to build
 
-Add path of toolchain that is described above section, such as:
-
+1. Set the Toolchain Path
+Add the RISC-V toolchain to your PATH:
 ```
 $ export PATH="/YOUR_PATH/riscv64-unknown-elf/bin:${PATH}"
 ```
-
+2. Build the FreeRTOS Demo
 For release build:
-
 ```
 $ make -C build/gcc/
 ```
 
 For debug build:
-
 **NOTE: not yet tested**
 
 ```
