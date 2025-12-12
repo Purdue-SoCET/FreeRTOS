@@ -91,7 +91,7 @@ INCLUDE_DIRS += -I$(DEMO_ROOT)/Common/include
 # Application entry point.  main_blinky is self contained.  main_full builds
 # the above common demo (and test) files too.
 #
-DEMO_PROJECT = $(DEMO_ROOT)/AFTx07
+DEMO_PROJECT = $(DEMO_ROOT)/AFTx08
 VPATH += $(DEMO_PROJECT)
 INCLUDE_DIRS += -I$(DEMO_PROJECT)
 SOURCE_FILES += (DEMO_PROJECT)/main.c
