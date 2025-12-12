@@ -7,43 +7,34 @@
 #include <stdio.h>
 #include <string.h>
 
-/* This project provides three demo applications.  
-- mainFPGA is for Socet AFTx07 synthesis demo
-- mainBLINKY_DEMO is for simulation demo
-- mainFULL has NOT yet tested
-Please read the comment in riscv-virt.h
+/*
+Demo entry points (selected by compile-time macros):
+
+- mainFPGA == 1
+  Run the FPGA / SoCET AFTx08 demo (UART and some test case).
+- mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1
+  Run the minimal "blinky" demo (recommended for initial testing on simulation)
+- Run the more comprehensive demo (main_full). Note: This path may not be fully validated on AFTx08 yet.
+- See riscv-virt.h for details.
 */
+
+
 
 /*
-
-test
-#include "pal.h"
-#include "uart.h"
-
-static IOMuxRegBlk * const iom = (IOMuxRegBlk *)IO_MUX_BASE;
-
-static void board_init_uart(void) {
-    const uint32_t TX_MASK_2BIT = (3u << 0);
-    const uint32_t RX_MASK_2BIT = (3u << 2);
-    iom->fsel0 &= ~(TX_MASK_2BIT | RX_MASK_2BIT);   
-    iom->fsel0 |=  (1u << 0) | (1u << 2);           
-    uart_setup();                                
-	    // 設 cycles-per-bit
-}
-
+mtvec configuration:
+- Direct mode:
+  All traps jump to the base address in mtvec.
+- Vectored mode:
+  Exceptions jump to BASE, interrupts jump to BASE + 4 * cause.
 */
 
-/* Set to 1 to use direct mode and set to 0 to use vectored mode.
-VECTOR MODE=Direct --> all traps into machine mode cause the pc to be set to the
-vector base address (BASE) in the mtvec register.
-VECTOR MODE=Vectored --> all synchronous exceptions into machine mode cause the
-pc to be set to the BASE, whereas interrupts cause the pc to be set to the
-address BASE plus four times the interrupt cause number.
-*/
 #define mainVECTOR_MODE_DIRECT	0
 
 
-/* Registers used to initialise the PLIC. */
+/*
+PLIC registers based on the SoCET AFTx08 memory map.
+The current demo may not directly access these registers.
+*/
 #define mainPLIC_PENDING_0 ( * ( ( volatile uint32_t * ) 0x0C001000UL ) )
 #define mainPLIC_PENDING_1 ( * ( ( volatile uint32_t * ) 0x0C001004UL ) )
 #define mainPLIC_ENABLE_0  ( * ( ( volatile uint32_t * ) 0x0C002000UL ) )
@@ -107,7 +98,7 @@ void main( void )
 	}
 	#else //mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1
 	{
-		main_full();
+		main_test();
 	}
 	#endif // ( mainFPGA == 1)
 }
@@ -170,6 +161,7 @@ void vApplicationTickHook( void )
 	code must not attempt to block, and only the interrupt safe FreeRTOS API
 	functions can be used (those that end in FromISR()). */
 
+	/*
 	#if ( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY != 1 )
 	{
 		extern void vFullDemoTickHookFunction( void );
@@ -288,6 +280,18 @@ void *malloc( size_t size )
 
 }
 /*-----------------------------------------------------------*/
+
+/*
+Application exception handler.
+
+Registers:
+- mepc   : program counter at the faulting instruction
+- mcause : exception or interrupt cause
+- mtval  : additional fault information (e.g. bad address)
+
+Use mcause together with mepc disassembly to debug faults.
+*/
+
 
 void freertos_risc_v_application_exception_handler ( void ) 
 {

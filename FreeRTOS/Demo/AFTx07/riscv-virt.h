@@ -23,7 +23,7 @@ demo application will be built.  The comprehensive test and demo application is
 implemented and described in main_full.c.
 */
 
-#define SYNTHESIS 1 // SYNTHESIS macro, 1 for building fpga sysnthesis, 0 for simulation 
+#define SYNTHESIS 0 // SYNTHESIS macro, 1 for building fpga sysnthesis, 0 for simulation 
 #define mainFPGA 0
 #define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	1
 

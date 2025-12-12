@@ -156,7 +156,6 @@ void main_blinky( void )
 								NULL,				/* The timer's ID is not used. */
 								prvQueueSendTimerCallback );/* The function executed when the timer expires. */
 		configASSERT( xTimer != NULL );
-
 		BaseType_t ok = xTimerStart( xTimer, 0 );
 		configASSERT( ok == pdPASS );
 

@@ -1,7 +1,7 @@
 #include "pal.h"
 #include "uart.h"
 
-#define BAUD_CYCLES 2604 //BAUD_RATE = 96000?
+#define BAUD_CYCLES 2604
 
 static UARTRegBlk *uart = (UARTRegBlk *) UART_BASE;
 
@@ -22,11 +22,14 @@ void uart_sendbyte(char onechar)
 }
 */
 
+
+
 void uart_setup( void )
 {
     
 }
 
+/* Magic print: write to simulator address to print a char to teminal */
 void uart_sendbyte( char onechar )
 {
     volatile char *MAGIC_ADDR = (volatile char *)0xB0000000;
