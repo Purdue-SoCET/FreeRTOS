@@ -4,16 +4,35 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-/* ---- Simple knobs ---- */
-#define PRIO_FIB     ( tskIDLE_PRIORITY + 1 )  /* low */
-#define PRIO_ALARM   ( tskIDLE_PRIORITY + 4 )  /* high */
+/* freeRTOS mode 1 or bare-metal mode 0 */
+#define USE_FREERTOS_MODE    1
 
-#define STACK_FIB    ( configMINIMAL_STACK_SIZE * 2 )
-#define STACK_ALARM  ( configMINIMAL_STACK_SIZE * 2 )
+#define FIB_N                5
+#define SAMPLE_COUNT         10
+#define TEST_WINDOW_TICKS    100  /* 1000 ticks = 1 sec if tick = 1ms */
 
-#define PERIOD_MS          1       /* measurement resolution */
-#define PRINT_EVERY_MS     100     /* how often we print results */
-#define FIB_N              25
+#if ( USE_FREERTOS_MODE == 1 )
+    #define PRIO_FIB         ( tskIDLE_PRIORITY + 1 )
+    #define PRIO_MONITOR     ( tskIDLE_PRIORITY + 3 )
+    #define STACK_FIB        ( configMINIMAL_STACK_SIZE * 4 )
+    #define STACK_MONITOR    ( configMINIMAL_STACK_SIZE * 3 )
+#endif
+
+static inline uint32_t read_cycle32(void)
+{
+    uint32_t c;
+#if defined(__riscv)
+    __asm volatile ("rdcycle %0" : "=r"(c));
+#else
+    c = 0;
+#endif
+    return c;
+}
+
+static inline uint32_t cycles_to_us(uint32_t cycles)
+{
+    return (uint32_t)(((uint64_t)cycles * 1000000ULL) / (uint64_t)configCPU_CLOCK_HZ);
+}
 
 __attribute__((noinline))
 static uint32_t fib(uint32_t n)
@@ -22,80 +41,130 @@ static uint32_t fib(uint32_t n)
     return fib(n - 1) + fib(n - 2);
 }
 
-/* Low priority CPU load + small heartbeat print */
+/* global counters */
+volatile uint32_t g_job_count = 0;
+volatile uint32_t g_dummy_sink = 0;
+/* keep this for main.c tick hook */
+void AlarmKickFromTickISR(void)
+{
+    /* not used in throughput test */
+}
+
+
+#if ( USE_FREERTOS_MODE == 1 )
+
 static void FibTask(void *pv)
 {
     (void)pv;
-    volatile uint32_t r = 0;
-    uint32_t count = 0;
 
     for (;;)
     {
-        r = fib(FIB_N);
-        (void)r;
-
-        /* show Fib is alive, but don't spam */
-        if ((++count % 200) == 0) {
-            printf("[T=%u] FIB running, last=%u\n",
-                   (unsigned)xTaskGetTickCount(), (unsigned)r);
-        }
+        g_dummy_sink = fib(FIB_N);
+        g_job_count++;
     }
 }
 
-/* High priority periodic task measures latency but prints less */
-static void AlarmTask(void *pv)
+
+static void MonitorTask(void *pv)
 {
     (void)pv;
 
-    const TickType_t period = pdMS_TO_TICKS(PERIOD_MS);
-    TickType_t lastWake = xTaskGetTickCount();
+    uint32_t max_jobs = 0;
+    uint32_t sum_jobs = 0;
+    uint32_t cnt = 0;
 
-    const uint32_t printEvery = PRINT_EVERY_MS / PERIOD_MS; /* e.g. 100 */
-    uint32_t prints = 0;
-
-    TickType_t maxLate = 0;
-
-    printf("=== 2-task latency demo ===\n");
-    printf("tick_hz=%u, alarm_period=%u ms, print_every=%u ms, fib_n=%u\n\n",
-           (unsigned)configTICK_RATE_HZ,
-           (unsigned)PERIOD_MS,
-           (unsigned)PRINT_EVERY_MS,
-           (unsigned)FIB_N);
+    printf("\nFreeRTOS Throughput Mode\n");
 
     for (;;)
     {
-        vTaskDelayUntil(&lastWake, period);
+        uint32_t start_jobs = g_job_count;
+        uint32_t start_cycle = read_cycle32();
 
-        TickType_t now = xTaskGetTickCount();
-        TickType_t ideal = lastWake;
-        TickType_t late = (now > ideal) ? (now - ideal) : 0;
+        vTaskDelay(TEST_WINDOW_TICKS);
 
-        if (late > maxLate) maxLate = late;
+        uint32_t end_cycle = read_cycle32();
+        uint32_t end_jobs = g_job_count;
 
-        /* print only every PRINT_EVERY_MS */
-        if ((++prints % printEvery) == 0) {
-            uint32_t maxLateMs = (uint32_t)(maxLate * 1000UL / (uint32_t)configTICK_RATE_HZ);
-            printf("[T=%u] ALARM max_latency=%u ticks (~%u ms)\n",
-                   (unsigned)now, (unsigned)maxLate, (unsigned)maxLateMs);
-            maxLate = 0;
+        uint32_t jobs_done = end_jobs - start_jobs;
+        uint32_t elapsed_cycles = end_cycle - start_cycle;
+
+        if (jobs_done > max_jobs) max_jobs = jobs_done;
+        sum_jobs += jobs_done;
+        cnt++;
+
+        printf("[RTOS] jobs/window: %u, cycles/job: %u, time: %u us\n",
+            jobs_done,
+            (jobs_done > 0) ? (elapsed_cycles / jobs_done) : 0,
+            cycles_to_us(elapsed_cycles));
+
+        if (cnt >= SAMPLE_COUNT)
+        {
+            printf("[RTOS] Max jobs/sec: %u, Avg jobs/sec: %u\n",
+                   max_jobs,
+                   sum_jobs / cnt);
+
+            max_jobs = 0;
+            sum_jobs = 0;
+            cnt = 0;
         }
     }
 }
 
-
+#endif
 
 void main_blinky(void)
 {
-    BaseType_t ok;
+#if ( USE_FREERTOS_MODE == 1 )
 
-    ok = xTaskCreate(AlarmTask, "ALARM", STACK_ALARM, NULL, PRIO_ALARM, NULL);
-    configASSERT(ok == pdPASS);
-
-    ok = xTaskCreate(FibTask, "FIB", STACK_FIB, NULL, PRIO_FIB, NULL);
-    configASSERT(ok == pdPASS);
-
+    xTaskCreate(MonitorTask, "MON", STACK_MONITOR, NULL, PRIO_MONITOR, NULL);
+    xTaskCreate(FibTask, "FIB", STACK_FIB, NULL, PRIO_FIB, NULL);
     vTaskStartScheduler();
-
-    printf("ERROR: scheduler returned\n");
     for (;;);
+
+#else   /* bare-metal simulation mode */
+
+    uint32_t max_jobs = 0;
+    uint32_t sum_jobs = 0;
+    uint32_t samples = 0;
+
+    /* shorter window for simulation */
+    const uint32_t test_cycles = configCPU_CLOCK_HZ / 100;   /* 10 ms */
+
+    printf("\nBare-metal Throughput Mode\n");
+
+    while (1)
+    {
+        uint32_t start_cycle = read_cycle32();
+        uint32_t jobs_done = 0;
+
+        while ((uint32_t)(read_cycle32() - start_cycle) < test_cycles)
+        {
+            g_dummy_sink = fib(FIB_N);
+            jobs_done++;
+        }
+
+        uint32_t elapsed_cycles = (uint32_t)(read_cycle32() - start_cycle);
+
+        if (jobs_done > max_jobs) max_jobs = jobs_done;
+        sum_jobs += jobs_done;
+        samples++;
+
+        printf("[Bare] jobs/window: %u, cycles/job: %u, time: %u us\n",
+               jobs_done,
+               (jobs_done > 0) ? (elapsed_cycles / jobs_done) : 0,
+               cycles_to_us(elapsed_cycles));
+
+        if (samples >= SAMPLE_COUNT)
+        {
+            printf("[Bare] Max jobs/window: %u, Avg jobs/window: %u\n",
+                   max_jobs,
+                   sum_jobs / samples);
+
+            max_jobs = 0;
+            sum_jobs = 0;
+            samples = 0;
+        }
+    }
+
+#endif
 }
