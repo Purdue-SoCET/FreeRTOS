@@ -27,7 +27,7 @@ implemented and described in main_full.c.
 #define mainFPGA 0
 #define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	1
 
-#define CLINT_ADDR			CONS(0x90010000, UL)
+#define CLINT_ADDR			CONS(0x90010000, UL) //new address for clint, which is used for timer and software interrupt in this platform
 #define CLINT_MSIP			CONS(0x0, UL)
 #define CLINT_MTIME			CONS(0xBFF8, UL)
 #define CLINT_MTIMECMP	    CONS(0x4000, UL)
