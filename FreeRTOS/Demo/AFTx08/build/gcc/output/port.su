@@ -1,3 +1,0 @@
-./../../../../Source/portable/GCC/RISC-V/port.c:128:10:vPortSetupTimerInterrupt	16	static
-./../../../../Source/portable/GCC/RISC-V/port.c:157:12:xPortStartScheduler	16	static
-./../../../../Source/portable/GCC/RISC-V/port.c:198:6:vPortEndScheduler	0	static

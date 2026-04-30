@@ -9,7 +9,7 @@
 
 #define FIB_N                5
 #define SAMPLE_COUNT         10
-#define TEST_WINDOW_TICKS    100  /* 1000 ticks = 1 sec if tick = 1ms */
+#define TEST_WINDOW_TICKS    100  // 1 tick = 10 ms , 100 tick = 1s
 
 #if ( USE_FREERTOS_MODE == 1 )
     #define PRIO_FIB         ( tskIDLE_PRIORITY + 1 )
@@ -121,14 +121,13 @@ void main_blinky(void)
     vTaskStartScheduler();
     for (;;);
 
-#else   /* bare-metal simulation mode */
+#else   //bare-metal simulation mode
 
     uint32_t max_jobs = 0;
     uint32_t sum_jobs = 0;
     uint32_t samples = 0;
 
-    /* shorter window for simulation */
-    const uint32_t test_cycles = configCPU_CLOCK_HZ / 100;   /* 10 ms */
+    const uint32_t test_cycles = configCPU_CLOCK_HZ;   // 1s
 
     printf("\nBare-metal Throughput Mode\n");
 

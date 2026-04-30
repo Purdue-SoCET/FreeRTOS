@@ -34,7 +34,7 @@ static uint32_t read_cycle32( void )
     return c;
 }
 
-static uint32_t cycles_to_us( uint32_t cycles )
+static uint32_t cycles_to_us( uint32_t cycles ) //depend on clock
 {
     return ( uint32_t ) ( ( ( uint64_t ) cycles * 1000000ULL ) / ( uint64_t ) configCPU_CLOCK_HZ );
 }

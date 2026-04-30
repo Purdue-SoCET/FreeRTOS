@@ -1,2 +1,0 @@
-./../../../../Demo/AFTx07/uart.c:25:6:uart_setup	0	static
-./../../../../Demo/AFTx07/uart.c:30:6:uart_sendbyte	0	static

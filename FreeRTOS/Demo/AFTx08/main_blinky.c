@@ -4,167 +4,178 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-/* freeRTOS mode 1 or bare-metal mode 0 */
-#define USE_FREERTOS_MODE    1
+#define LOAD_FIB_N              5
+#define JITTER_PERIOD_TICKS     1U
+#define REPORT_SAMPLE_COUNT     5U
 
-#define FIB_N                5
-#define SAMPLE_COUNT         10
-#define TEST_WINDOW_TICKS    100  /* 1000 ticks = 1 sec if tick = 1ms */
+#define PRIO_LOAD               ( tskIDLE_PRIORITY + 1 )
+#define PRIO_MONITOR            ( tskIDLE_PRIORITY + 2 )
+#define PRIO_JITTER             ( tskIDLE_PRIORITY + 3 )
 
-#if ( USE_FREERTOS_MODE == 1 )
-    #define PRIO_FIB         ( tskIDLE_PRIORITY + 1 )
-    #define PRIO_MONITOR     ( tskIDLE_PRIORITY + 3 )
-    #define STACK_FIB        ( configMINIMAL_STACK_SIZE * 4 )
-    #define STACK_MONITOR    ( configMINIMAL_STACK_SIZE * 3 )
-#endif
+#define STACK_LOAD              ( configMINIMAL_STACK_SIZE * 4 )
+#define STACK_MONITOR           ( configMINIMAL_STACK_SIZE * 3 )
+#define STACK_JITTER            ( configMINIMAL_STACK_SIZE * 3 )
 
-static inline uint32_t read_cycle32(void)
+static volatile uint32_t g_dummy_sink = 0;
+static volatile uint32_t g_load_jobs = 0;
+static volatile uint32_t g_jitter_min_cycles = UINT32_MAX;
+static volatile uint32_t g_jitter_max_cycles = 0;
+static volatile uint64_t g_jitter_sum_cycles = 0;
+static volatile uint32_t g_jitter_samples = 0;
+
+static uint32_t read_cycle32( void )
 {
     uint32_t c;
-#if defined(__riscv)
-    __asm volatile ("rdcycle %0" : "=r"(c));
+#if defined( __riscv )
+    __asm volatile ( "rdcycle %0" : "=r"( c ) );
 #else
     c = 0;
 #endif
     return c;
 }
 
-static inline uint32_t cycles_to_us(uint32_t cycles)
+static uint32_t cycles_to_us( uint32_t cycles ) //depend on clock
 {
-    return (uint32_t)(((uint64_t)cycles * 1000000ULL) / (uint64_t)configCPU_CLOCK_HZ);
+    return ( uint32_t ) ( ( ( uint64_t ) cycles * 1000000ULL ) / ( uint64_t ) configCPU_CLOCK_HZ );
 }
 
-__attribute__((noinline))
-static uint32_t fib(uint32_t n)
+__attribute__( ( noinline ) ) static uint32_t fib( uint32_t n )
 {
-    if (n < 2) return n;
-    return fib(n - 1) + fib(n - 2);
-}
-
-/* global counters */
-volatile uint32_t g_job_count = 0;
-volatile uint32_t g_dummy_sink = 0;
-/* keep this for main.c tick hook */
-void AlarmKickFromTickISR(void)
-{
-    /* not used in throughput test */
-}
-
-
-#if ( USE_FREERTOS_MODE == 1 )
-
-static void FibTask(void *pv)
-{
-    (void)pv;
-
-    for (;;)
+    if( n < 2U )
     {
-        g_dummy_sink = fib(FIB_N);
-        g_job_count++;
+        return n;
+    }
+
+    return fib( n - 1U ) + fib( n - 2U );
+}
+
+void AlarmKickFromTickISR( void )
+{
+    /* Not used in this jitter test. */
+}
+
+static void vLoadTask( void * pv )
+{
+    ( void ) pv;
+
+    for( ;; )
+    {
+        g_dummy_sink = fib( LOAD_FIB_N );
+        g_load_jobs++;
     }
 }
 
-
-static void MonitorTask(void *pv)
+static void vJitterTask( void * pv )
 {
-    (void)pv;
+    const uint32_t expected_cycles =
+        ( uint32_t ) ( ( ( uint64_t ) JITTER_PERIOD_TICKS * configCPU_CLOCK_HZ ) / configTICK_RATE_HZ );
+    TickType_t last_wake_time = xTaskGetTickCount();
+    uint32_t previous_cycle = read_cycle32();
 
-    uint32_t max_jobs = 0;
-    uint32_t sum_jobs = 0;
-    uint32_t cnt = 0;
+    ( void ) pv;
 
-    printf("\nFreeRTOS Throughput Mode\n");
-
-    for (;;)
+    for( ;; )
     {
-        uint32_t start_jobs = g_job_count;
-        uint32_t start_cycle = read_cycle32();
+        uint32_t now;
+        uint32_t elapsed_cycles;
+        uint32_t jitter_cycles;
 
-        vTaskDelay(TEST_WINDOW_TICKS);
+        xTaskDelayUntil( &last_wake_time, JITTER_PERIOD_TICKS );
 
-        uint32_t end_cycle = read_cycle32();
-        uint32_t end_jobs = g_job_count;
+        now = read_cycle32();
+        elapsed_cycles = now - previous_cycle;
+        previous_cycle = now;
 
-        uint32_t jobs_done = end_jobs - start_jobs;
-        uint32_t elapsed_cycles = end_cycle - start_cycle;
-
-        if (jobs_done > max_jobs) max_jobs = jobs_done;
-        sum_jobs += jobs_done;
-        cnt++;
-
-        printf("[RTOS] jobs/window: %u, cycles/job: %u, time: %u us\n",
-            jobs_done,
-            (jobs_done > 0) ? (elapsed_cycles / jobs_done) : 0,
-            cycles_to_us(elapsed_cycles));
-
-        if (cnt >= SAMPLE_COUNT)
+        if( elapsed_cycles >= expected_cycles )
         {
-            printf("[RTOS] Max jobs/sec: %u, Avg jobs/sec: %u\n",
-                   max_jobs,
-                   sum_jobs / cnt);
-
-            max_jobs = 0;
-            sum_jobs = 0;
-            cnt = 0;
+            jitter_cycles = elapsed_cycles - expected_cycles;
         }
+        else
+        {
+            jitter_cycles = expected_cycles - elapsed_cycles;
+        }
+
+        taskENTER_CRITICAL();
+        {
+            if( jitter_cycles < g_jitter_min_cycles )
+            {
+                g_jitter_min_cycles = jitter_cycles;
+            }
+
+            if( jitter_cycles > g_jitter_max_cycles )
+            {
+                g_jitter_max_cycles = jitter_cycles;
+            }
+
+            g_jitter_sum_cycles += jitter_cycles;
+            g_jitter_samples++;
+        }
+        taskEXIT_CRITICAL();
     }
 }
 
-#endif
-
-void main_blinky(void)
+static void vMonitorTask( void * pv )
 {
-#if ( USE_FREERTOS_MODE == 1 )
+    uint32_t last_load_jobs = 0;
 
-    xTaskCreate(MonitorTask, "MON", STACK_MONITOR, NULL, PRIO_MONITOR, NULL);
-    xTaskCreate(FibTask, "FIB", STACK_FIB, NULL, PRIO_FIB, NULL);
+    ( void ) pv;
+
+    printf( "\nFreeRTOS Jitter Mode\n" );
+    printf( "period_ticks=%u expected_period_us=%u\n",
+            ( unsigned ) JITTER_PERIOD_TICKS,
+            ( unsigned ) ( ( 1000000ULL * JITTER_PERIOD_TICKS ) / configTICK_RATE_HZ ) );
+
+    for( ;; )
+    {
+        uint32_t min_cycles;
+        uint32_t max_cycles;
+        uint32_t sample_count;
+        uint32_t avg_cycles;
+        uint32_t current_load_jobs;
+        uint64_t sum_cycles;
+
+        vTaskDelay( JITTER_PERIOD_TICKS * REPORT_SAMPLE_COUNT );
+
+        taskENTER_CRITICAL();
+        {
+            min_cycles = g_jitter_min_cycles;
+            max_cycles = g_jitter_max_cycles;
+            sum_cycles = g_jitter_sum_cycles;
+            sample_count = g_jitter_samples;
+            g_jitter_min_cycles = UINT32_MAX;
+            g_jitter_max_cycles = 0;
+            g_jitter_sum_cycles = 0;
+            g_jitter_samples = 0;
+            current_load_jobs = g_load_jobs;
+        }
+        taskEXIT_CRITICAL();
+
+        if( sample_count == 0U )
+        {
+            continue;
+        }
+
+        avg_cycles = ( uint32_t ) ( sum_cycles / sample_count );
+
+        printf( "[RTOS] jitter min/max/avg: %u/%u/%u us, load/window: %u\n",
+                ( unsigned ) cycles_to_us( min_cycles ),
+                ( unsigned ) cycles_to_us( max_cycles ),
+                ( unsigned ) cycles_to_us( avg_cycles ),
+                ( unsigned ) ( current_load_jobs - last_load_jobs ) );
+
+        last_load_jobs = current_load_jobs;
+    }
+}
+
+void main_blinky( void )
+{
+    xTaskCreate( vJitterTask, "JIT", STACK_JITTER, NULL, PRIO_JITTER, NULL );
+    xTaskCreate( vMonitorTask, "MON", STACK_MONITOR, NULL, PRIO_MONITOR, NULL );
+    xTaskCreate( vLoadTask, "LOAD", STACK_LOAD, NULL, PRIO_LOAD, NULL );
+
     vTaskStartScheduler();
-    for (;;);
 
-#else   /* bare-metal simulation mode */
-
-    uint32_t max_jobs = 0;
-    uint32_t sum_jobs = 0;
-    uint32_t samples = 0;
-
-    /* shorter window for simulation */
-    const uint32_t test_cycles = configCPU_CLOCK_HZ / 100;   /* 10 ms */
-
-    printf("\nBare-metal Throughput Mode\n");
-
-    while (1)
+    for( ;; )
     {
-        uint32_t start_cycle = read_cycle32();
-        uint32_t jobs_done = 0;
-
-        while ((uint32_t)(read_cycle32() - start_cycle) < test_cycles)
-        {
-            g_dummy_sink = fib(FIB_N);
-            jobs_done++;
-        }
-
-        uint32_t elapsed_cycles = (uint32_t)(read_cycle32() - start_cycle);
-
-        if (jobs_done > max_jobs) max_jobs = jobs_done;
-        sum_jobs += jobs_done;
-        samples++;
-
-        printf("[Bare] jobs/window: %u, cycles/job: %u, time: %u us\n",
-               jobs_done,
-               (jobs_done > 0) ? (elapsed_cycles / jobs_done) : 0,
-               cycles_to_us(elapsed_cycles));
-
-        if (samples >= SAMPLE_COUNT)
-        {
-            printf("[Bare] Max jobs/window: %u, Avg jobs/window: %u\n",
-                   max_jobs,
-                   sum_jobs / samples);
-
-            max_jobs = 0;
-            sum_jobs = 0;
-            samples = 0;
-        }
     }
-
-#endif
 }
