@@ -1,6 +1,10 @@
 # Ignore MacOS file system related.
 **/*.DS_Store*
 
+# Local assistant/session state
+.codex
+.codex/
+
 # Ignore build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -22,6 +26,15 @@ CWSettingsWindows.stg
 *.elf
 *.out
 *.rom
+*.map
+*.disassemble
+*.d
+*.o
+*.su
+
+# AFTx08 generated build output
+FreeRTOS/Demo/AFTx08/build/gcc/output/*
+!FreeRTOS/Demo/AFTx08/build/gcc/output/placeholder.txt
 
 # MS Word Files
 *.doc
