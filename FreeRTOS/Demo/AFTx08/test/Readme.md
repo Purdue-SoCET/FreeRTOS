@@ -29,7 +29,7 @@ Set it to `1` to run the FreeRTOS version, or `0` to run the bare-metal version 
 
 ## Test file summary
 
-| File | Purpose | Main output |
+| File | Purpose | 
 |---|---|---|
 | `throughput.c` | Measures how many Fibonacci workload jobs can finish within a fixed time. This is used to compare raw work completion between FreeRTOS and bare-metal. 
 | `jitter.c` | Measures timing variation of a periodic FreeRTOS task while a background workload is running. 
