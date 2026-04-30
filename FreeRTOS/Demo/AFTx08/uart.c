@@ -5,7 +5,18 @@
 
 static UARTRegBlk *uart = (UARTRegBlk *) UART_BASE;
 
-/* Set up UART BAUD_RATE */
+
+void uart_setup( void )
+{
+    
+}
+
+/* Magic print: write to simulator address to print a char to teminal */
+void uart_sendbyte( char onechar )
+{
+    volatile char *MAGIC_ADDR = (volatile char *)0xB0000000;
+    *MAGIC_ADDR = onechar;
+}
 
 
 /*
@@ -21,17 +32,3 @@ void uart_sendbyte(char onechar)
     while (!(uart->txstate & 0x1));
 }
 */
-
-
-
-void uart_setup( void )
-{
-    
-}
-
-/* Magic print: write to simulator address to print a char to teminal */
-void uart_sendbyte( char onechar )
-{
-    volatile char *MAGIC_ADDR = (volatile char *)0xB0000000;
-    *MAGIC_ADDR = onechar;
-}
