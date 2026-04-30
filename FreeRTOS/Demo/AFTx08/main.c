@@ -169,6 +169,7 @@ void vApplicationTickHook( void )
 		vFullDemoTickHookFunction();
 	}
 	#endif /* mainCREATE_SIMPLE_BLINKY_DEMO_ONLY */
+	AlarmKickFromTickISR();
 }
 /*-----------------------------------------------------------*/
 
