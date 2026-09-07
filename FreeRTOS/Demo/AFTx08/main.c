@@ -98,7 +98,7 @@ void main( void )
 	}
 	#else //mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1
 	{
-		main_test();
+		// main_test();
 	}
 	#endif // ( mainFPGA == 1)
 }

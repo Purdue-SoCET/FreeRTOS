@@ -33,11 +33,11 @@ LDFLAGS += -nostartfiles -Xlinker --gc-sections -Wl,-Map,$(OUTPUT_DIR)/RTOSDemo.
 #
 # Kernel build.
 #
-KERNEL_DIR = $(FREERTOS_ROOT)/Source
+KERNEL_DIR = $(FREERTOS_ROOT)/FreeRTOS-Kernel
 KERNEL_PORT_DIR += $(KERNEL_DIR)/portable/GCC/RISC-V
 INCLUDE_DIRS += -I$(KERNEL_DIR)/include \
 				-I$(KERNEL_PORT_DIR) \
-				-I$(KERNEL_PORT_DIR)/chip_specific_extensions/RV32I_CLINT_no_extensions
+				-I$(KERNEL_PORT_DIR)/chip_specific_extensions/RISCV_MTIME_CLINT_no_extensions
 VPATH += $(KERNEL_DIR) $(KERNEL_PORT_DIR) $(KERNEL_DIR)/portable/MemMang
 SOURCE_FILES += $(KERNEL_DIR)/tasks.c
 SOURCE_FILES += $(KERNEL_DIR)/list.c
