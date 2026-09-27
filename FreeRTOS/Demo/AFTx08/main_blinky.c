@@ -41,10 +41,12 @@
  * The Queue Send Task:
  * The queue send task is implemented by the prvQueueSendTask() function in
  * this file.  It uses vTaskDelayUntil() to create a periodic task that sends
- * the value 100 to the queue every 200 (simulated) milliseconds.
+ * the value 100 to the queue every 20 (simulated) milliseconds.
+ * (Stock FreeRTOS QEMU blinky uses 200 ms / 2 s; AFTx07 used 20 ms / 200 ms
+ * so a 20e6-cycle Verilator run actually shows repeated TX/RX and the timer.)
  *
  * The Queue Send Software Timer:
- * The timer is an auto-reload timer with a period of two (simulated) seconds.
+ * The timer is an auto-reload timer with a period of 200 (simulated) milliseconds.
  * Its callback function writes the value 200 to the queue.  The callback
  * function is implemented by prvQueueSendTimerCallback() within this file.
  *
@@ -71,8 +73,8 @@
 
 /* The rate at which data is sent to the queue.  The times are converted from
  * milliseconds to ticks using the pdMS_TO_TICKS() macro. */
-#define mainTASK_SEND_FREQUENCY_MS         pdMS_TO_TICKS( 200UL )
-#define mainTIMER_SEND_FREQUENCY_MS        pdMS_TO_TICKS( 2000UL )
+#define mainTASK_SEND_FREQUENCY_MS         pdMS_TO_TICKS( 20UL )
+#define mainTIMER_SEND_FREQUENCY_MS        pdMS_TO_TICKS( 200UL )
 
 /* The number of items the queue can hold at once. */
 #define mainQUEUE_LENGTH                   ( 2 )
@@ -110,6 +112,7 @@ void main_blinky( void )
 {
     const TickType_t xTimerPeriod = mainTIMER_SEND_FREQUENCY_MS;
 
+    printf("Get into main_blinky\n");
     /* Create the queue. */
     xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
 
@@ -123,8 +126,10 @@ void main_blinky( void )
                      NULL,                            /* The parameter passed to the task - not used in this simple case. */
                      mainQUEUE_RECEIVE_TASK_PRIORITY, /* The priority assigned to the task. */
                      NULL );                          /* The task handle is not required, so NULL is passed. */
+        printf("Done created RX task\n");
 
         xTaskCreate( prvQueueSendTask, "TX", configMINIMAL_STACK_SIZE, NULL, mainQUEUE_SEND_TASK_PRIORITY, NULL );
+        printf("Done created TX task\n");
 
         /* Create the software timer, but don't start it yet. */
         xTimer = xTimerCreate( "Timer",                     /* The text name assigned to the software timer - for debug only as it is not used by the kernel. */
@@ -132,6 +137,7 @@ void main_blinky( void )
                                pdTRUE,                      /* xAutoReload is set to pdTRUE, so this is an auto-reload timer. */
                                NULL,                        /* The timer's ID is not used. */
                                prvQueueSendTimerCallback ); /* The function executed when the timer expires. */
+        printf("Done created timer task\n");
 
         xTimerStart( xTimer, 0 );                           /* The scheduler has not started so use a block time of 0. */
 
@@ -145,6 +151,7 @@ void main_blinky( void )
      * timer tasks	to be created.  See the memory management section on the
      * FreeRTOS web site for more details.  NOTE: This demo uses static allocation
      * for the idle and timer tasks so this line should never execute. */
+    printf("This line should never be seen\nMaybe increase heap size in FreeRTOSConfig.h");
     for( ; ; )
     {
     }
@@ -176,6 +183,7 @@ static void prvQueueSendTask( void * pvParameters )
          * will not block - it shouldn't need to block as the queue should always
          * have at least one space at this point in the code. */
         xQueueSend( xQueue, &ulValueToSend, 0U );
+        printf("TX task sent\n");
     }
 }
 /*-----------------------------------------------------------*/
@@ -184,10 +192,8 @@ static void prvQueueSendTimerCallback( TimerHandle_t xTimerHandle )
 {
     const uint32_t ulValueToSend = mainVALUE_SENT_FROM_TIMER;
 
-    /* This is the software timer callback function.  The software timer has a
-     * period of two seconds and is reset each time a key is pressed.  This
-     * callback function will execute if the timer expires, which will only happen
-     * if a key is not pressed for two seconds. */
+    /* This is the software timer callback function.  Period is 200 ms
+     * (AFTx07 Verilator blinky), not the stock QEMU 2 s. */
 
     /* Avoid compiler warnings resulting from the unused parameter. */
     ( void ) xTimerHandle;
@@ -196,6 +202,7 @@ static void prvQueueSendTimerCallback( TimerHandle_t xTimerHandle )
      * write out a message.  This function is called from the timer/daemon task, so
      * must not block.  Hence the block time is set to 0. */
     xQueueSend( xQueue, &ulValueToSend, 0U );
+    printf("Timer expires\n");
 }
 /*-----------------------------------------------------------*/
 
