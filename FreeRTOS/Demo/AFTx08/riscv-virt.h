@@ -25,6 +25,8 @@ implemented and described in main_full.c.
 
 #define SYNTHESIS 0 // SYNTHESIS macro, 1 for building fpga sysnthesis, 0 for simulation 
 #define mainFPGA 0
+/* 1 selects main_smp() (two tasks printing mhartid). Set to 0 to run blinky. */
+#define mainCREATE_SMP_DEMO	1
 #define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	1
 
 #define CLINT_ADDR			CONS(0x90010000, UL) //new address for clint, which is used for timer and software interrupt in this platform

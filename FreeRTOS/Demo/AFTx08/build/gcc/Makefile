@@ -14,11 +14,11 @@ OBJDUMP = riscv64-unknown-elf-objdump
 MAKE = make
 
 CFLAGS += $(INCLUDE_DIRS) -mstrict-align -fstack-usage -DportasmHANDLE_INTERRUPT=handle_trap -fmessage-length=0 -static \
-          -march=rv32imc_zicsr -mabi=ilp32 -mcmodel=medany -ffunction-sections -fdata-sections -ffreestanding\
+          -march=rv32imac_zicsr -mabi=ilp32 -mcmodel=medany -ffunction-sections -fdata-sections -ffreestanding\
           --specs=nano.specs -fno-builtin-printf -Wno-unused-parameter -nostartfiles -g3 -Os
           
 LDFLAGS += -nostartfiles -Xlinker --gc-sections -Wl,-Map,$(OUTPUT_DIR)/RTOSDemo.map \
-           -T./fake_rom.ld -march=rv32imc_zicsr -mabi=ilp32 -mcmodel=medany -Xlinker \
+           -T./fake_rom.ld -march=rv32imac_zicsr -mabi=ilp32 -mcmodel=medany -Xlinker \
            --defsym=__stack_size=346 -Wl,--start-group -Wl,--end-group -Wl,--wrap=malloc \
            -Wl,--wrap=free -Wl,--wrap=open -Wl,--wrap=lseek -Wl,--wrap=read -Wl,--wrap=write \
            -Wl,--wrap=fstat -Wl,--wrap=stat -Wl,--wrap=close -Wl,--wrap=link -Wl,--wrap=unlink \
@@ -92,15 +92,19 @@ INCLUDE_DIRS += -I$(DEMO_ROOT)/Common/include
 # the above common demo (and test) files too.
 #
 DEMO_PROJECT = $(DEMO_ROOT)/AFTx08
-VPATH += $(DEMO_PROJECT)
+VPATH += $(DEMO_PROJECT) $(DEMO_PROJECT)/arch
 INCLUDE_DIRS += -I$(DEMO_PROJECT)
 SOURCE_FILES += (DEMO_PROJECT)/main.c
 SOURCE_FILES += (DEMO_PROJECT)/main_blinky.c
+SOURCE_FILES += (DEMO_PROJECT)/main_smp.c
 SOURCE_FILES += (DEMO_PROJECT)/main_fpga.c
 # SOURCE_FILES += (DEMO_PROJECT)/main_test.c
 # SOURCE_FILES += (DEMO_PROJECT)/main_full.c
 SOURCE_FILES += (DEMO_PROJECT)/riscv-virt.c
 SOURCE_FILES += (DEMO_PROJECT)/uart.c
+SOURCE_FILES += $(DEMO_PROJECT)/arch/ipi.c
+SOURCE_FILES += $(DEMO_PROJECT)/arch/spinlock.c
+SOURCE_FILES += $(DEMO_PROJECT)/arch/interrupt.c
 # Lightweight print formatting to use in place of the heavier GCC equivalent.
 SOURCE_FILES += ./printf-stdarg.c
 ASM_SOURCE_FILES += ./start.S

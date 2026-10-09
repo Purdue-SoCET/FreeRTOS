@@ -69,6 +69,12 @@ _start:
 	bltu a0, a1, 1b
 2:
 
+	// Hart 1 is spinning on this word. It must not proceed until bss is cleared.
+	la t0, boot_done
+	li t1, 0xC0FFEE
+	STOR t1, 0(t0)
+	fence rw, rw
+
 	// argc, argv, envp is 0
 	li  a0, 0
 	li  a1, 0
@@ -78,8 +84,42 @@ _start:
 	wfi
 	j 1b
 
+	/* Hart 1 waits here until hart 0 sends msip. That interrupt starts the scheduler. */
 secondary:
-	// TODO: Multicore is not supported
+	li t0, CLINT_ADDR + CLINT_MTIMECMP + 8
+	li t1, -1
+	STOR t1, 0(t0)
+	STOR t1, 4(t0)
+
+	la t0, boot_done
+	li t2, 0xC0FFEE
+wait_boot_done:
+	LOAD t1, 0(t0)
+	bne t1, t2, wait_boot_done
+	fence rw, rw
+
+	la t0, hart1_boot_stack
+	addi sp, t0, 1024
+
+	la t0, freertos_vector_table
+	ori t0, t0, 1
+	csrw mtvec, t0
+	csrw mie, zero
+	li t0, 8
+	csrs mie, t0
+	csrs mstatus, t0
+
+wait_for_scheduler_ipi:
 	wfi
-	j secondary
+	j wait_for_scheduler_ipi
 	.cfi_endproc
+
+	.section .data
+	.align 2
+boot_done:
+	.word 0
+
+	.section .bss
+	.align 4
+hart1_boot_stack:
+	.skip 1024

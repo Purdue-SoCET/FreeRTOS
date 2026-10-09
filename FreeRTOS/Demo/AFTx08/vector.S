@@ -35,7 +35,7 @@ IRQ_1:
 IRQ_2:
         j freertos_risc_v_interrupt_handler
 IRQ_3:
-        j freertos_risc_v_interrupt_handler
+        j freertos_risc_v_msip_entry
 IRQ_4:
         j freertos_risc_v_interrupt_handler
 IRQ_5:

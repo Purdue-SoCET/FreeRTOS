@@ -38,6 +38,9 @@
 /* Standard includes. */
 #include "string.h"
 
+/* Arch includes. */
+#include "arch/ipi.h"
+
 #ifdef configCLINT_BASE_ADDRESS
     #warning "The configCLINT_BASE_ADDRESS constant has been deprecated. configMTIME_BASE_ADDRESS and configMTIMECMP_BASE_ADDRESS are currently being derived from the (possibly 0) configCLINT_BASE_ADDRESS setting.  Please update to define configMTIME_BASE_ADDRESS and configMTIMECMP_BASE_ADDRESS directly in place of configCLINT_BASE_ADDRESS. See www.FreeRTOS.org/Using-FreeRTOS-on-RISC-V.html"
 #endif
@@ -65,17 +68,22 @@
  * stack that was used by main before the scheduler was started for use as the
  * interrupt stack after the scheduler has started. */
 #ifdef configISR_STACK_SIZE_WORDS
-static __attribute__( ( aligned( 16 ) ) ) StackType_t xISRStack[ configISR_STACK_SIZE_WORDS ] = { 0 };
-const StackType_t xISRStackTop = ( StackType_t ) &( xISRStack[ configISR_STACK_SIZE_WORDS & ~portBYTE_ALIGNMENT_MASK ] );
 
-/* Don't use 0xa5 as the stack fill bytes as that is used by the kernel for
- * the task stacks, and so will legitimately appear in many positions within
- * the ISR stack. */
+    #if ( configNUMBER_OF_CORES == 1 )
+        static __attribute__( ( aligned( 16 ) ) ) StackType_t xISRStack[ configISR_STACK_SIZE_WORDS ] = { 0 };
+        const StackType_t xISRStackTop = ( StackType_t ) &( xISRStack[ configISR_STACK_SIZE_WORDS & ~portBYTE_ALIGNMENT_MASK ] );
+    #else /* if ( configNUMBER_OF_CORES == 1 ) */
+        static __attribute__( ( aligned( 32 ) ) ) StackType_t xISRStacks[configNUMBER_OF_CORES][configISR_STACK_SIZE_WORDS] = {0};
+        StackType_t *xISRStackTops[configNUMBER_OF_CORES] = {0};
+    #endif /* if ( configNUMBER_OF_CORES == 1 ) */
+
+    /* Don't use 0xa5 as the stack fill bytes as that is used by the kernel for
+     * the task stacks, and so will legitimately appear in many positions within
+     * the ISR stack. */
     #define portISR_STACK_FILL_BYTE    0xee
-#else
-    extern const uint32_t __freertos_irq_stack_top[];
-    const StackType_t xISRStackTop = ( StackType_t ) __freertos_irq_stack_top;
-#endif
+#else /* ifdef configISR_STACK_SIZE_WORDS */
+    #error Reusing main stacks as irq stacks is not implemented yet
+#endif /* ifdef configISR_STACK_SIZE_WORDS */
 
 /*
  * Setup the timer to generate the tick interrupts.  The implementation in this
@@ -90,12 +98,15 @@ void vPortSetupTimerInterrupt( void ) __attribute__( ( weak ) );
 uint64_t ullNextTime = 0ULL;
 const uint64_t * pullNextTime = &ullNextTime;
 const size_t uxTimerIncrementsForOneTick = ( size_t ) ( ( configCPU_CLOCK_HZ ) / ( configTICK_RATE_HZ ) ); /* Assumes increment won't go over 32-bits. */
+UBaseType_t const ullMachineTimerCompareRegisterBase = configMTIMECMP_BASE_ADDRESS;
 volatile uint64_t * pullMachineTimerCompareRegister = NULL;
 
-/* Holds the critical nesting value - deliberately non-zero at start up to
- * ensure interrupts are not accidentally enabled before the scheduler starts. */
-size_t xCriticalNesting = ( size_t ) 0xaaaaaaaa;
-size_t * pxCriticalNesting = &xCriticalNesting;
+#if ( configNUMBER_OF_CORES == 1 )
+    size_t xCriticalNesting = ( UBaseType_t ) 0;
+    size_t * pxCriticalNesting = &xCriticalNesting;
+#else /* #if ( configNUMBER_OF_CORES == 1 ) */
+    UBaseType_t uxCriticalNestings[ configNUMBER_OF_CORES ] = { 0 };
+#endif /* #if ( configNUMBER_OF_CORES == 1 ) */
 
 /* Used to catch tasks that attempt to return from their implementing function. */
 size_t xTaskReturnAddress = ( size_t ) portTASK_RETURN_ADDRESS;
@@ -116,7 +127,9 @@ size_t xTaskReturnAddress = ( size_t ) portTASK_RETURN_ADDRESS;
         portISR_STACK_FILL_BYTE, portISR_STACK_FILL_BYTE, portISR_STACK_FILL_BYTE, portISR_STACK_FILL_BYTE
     }; \
 
-    #define portCHECK_ISR_STACK()    configASSERT( ( memcmp( ( void * ) xISRStack, ( void * ) ucExpectedStackBytes, sizeof( ucExpectedStackBytes ) ) == 0 ) )
+    // XXX: ISR STACK CHECK
+    //#define portCHECK_ISR_STACK()    configASSERT( ( memcmp( ( void * ) xISRStack, ( void * ) ucExpectedStackBytes, sizeof( ucExpectedStackBytes ) ) == 0 ) )
+    #define portCHECK_ISR_STACK()
 #else /* if defined( configISR_STACK_SIZE_WORDS ) && ( configCHECK_FOR_STACK_OVERFLOW > 2 ) */
     /* Define the function away. */
     #define portCHECK_ISR_STACK()
@@ -135,7 +148,7 @@ size_t xTaskReturnAddress = ( size_t ) portTASK_RETURN_ADDRESS;
 
         __asm volatile ( "csrr %0, mhartid" : "=r" ( ulHartId ) );
 
-        pullMachineTimerCompareRegister = ( volatile uint64_t * ) ( configMTIMECMP_BASE_ADDRESS + ( ulHartId * sizeof( uint64_t ) ) );
+        pullMachineTimerCompareRegister = ( volatile uint64_t * ) ( ullMachineTimerCompareRegisterBase + ( ulHartId * sizeof( uint64_t ) ) );
 
         do
         {
@@ -153,48 +166,147 @@ size_t xTaskReturnAddress = ( size_t ) portTASK_RETURN_ADDRESS;
         ullNextTime += ( uint64_t ) uxTimerIncrementsForOneTick;
     }
 
-#endif /* ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIMECMP_BASE_ADDRESS != 0 ) */
+#endif /* ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIME_BASE_ADDRESS != 0 ) */
 /*-----------------------------------------------------------*/
 
-BaseType_t xPortStartScheduler( void )
-{
-    extern void xPortStartFirstTask( void );
-
-    #if ( configASSERT_DEFINED == 1 )
+#if ( configNUMBER_OF_CORES == 1 )
+    BaseType_t xPortStartScheduler( void )
     {
-        /* Check alignment of the interrupt stack - which is the same as the
-         * stack that was being used by main() prior to the scheduler being
-         * started. */
-        configASSERT( ( xISRStackTop & portBYTE_ALIGNMENT_MASK ) == 0 );
+        extern void xPortStartFirstTask( void );
+        extern void freertos_risc_v_msip_interrupt_handler( void );
 
-        #ifdef configISR_STACK_SIZE_WORDS
+        #if ( configASSERT_DEFINED == 1 )
         {
-            memset( ( void * ) xISRStack, portISR_STACK_FILL_BYTE, sizeof( xISRStack ) );
+            /* Check alignment of the interrupt stack - which is the same as the
+             * stack that was being used by main() prior to the scheduler being
+             * started. */
+            configASSERT( ( xISRStackTop & portBYTE_ALIGNMENT_MASK ) == 0 );
+
+            #ifdef configISR_STACK_SIZE_WORDS
+            {
+                memset( ( void * ) xISRStack, portISR_STACK_FILL_BYTE, sizeof( xISRStack ) );
+            }
+            #endif /* configISR_STACK_SIZE_WORDS */
         }
-        #endif /* configISR_STACK_SIZE_WORDS */
+        #endif /* configASSERT_DEFINED */
+
+        /* If there is a CLINT then it is ok to use the default implementation
+         * in this file, otherwise vPortSetupTimerInterrupt() must be implemented to
+         * configure whichever clock is to be used to generate the tick interrupt. */
+        vPortSetupTimerInterrupt();
+
+        #if ( ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIMECMP_BASE_ADDRESS != 0 ) )
+        {
+            /* Enable mtime and external interrupts.  1<<7 for timer interrupt,
+             * 1<<11 for external interrupt.  _RB_ What happens here when mtime is
+             * not present as with pulpino? */
+            __asm volatile ( "csrs mie, %0" ::"r" ( 0x880 ) );
+        }
+        #endif /* ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIMECMP_BASE_ADDRESS != 0 ) */
+
+        arch_trap_handler_install(3, freertos_risc_v_msip_interrupt_handler);
+        // XXX: arch layer, enable MSIP
+        __asm volatile ( "csrsi mie, 0x8" );
+
+        xPortStartFirstTask();
+
+        /* Should not get here as after calling xPortStartFirstTask() only tasks
+         * should be executing. */
+        return pdFAIL;
     }
-    #endif /* configASSERT_DEFINED */
+#else /* if ( configNUMBER_OF_CORES == 1 ) */
 
-    /* If there is a CLINT then it is ok to use the default implementation
-     * in this file, otherwise vPortSetupTimerInterrupt() must be implemented to
-     * configure whichever clock is to be used to generate the tick interrupt. */
-    vPortSetupTimerInterrupt();
-
-    #if ( ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIMECMP_BASE_ADDRESS != 0 ) )
+    void xPortInitISRStacks(void)
     {
-        /* Enable mtime and external interrupts.  1<<7 for timer interrupt,
-         * 1<<11 for external interrupt.  _RB_ What happens here when mtime is
-         * not present as with pulpino? */
-        __asm volatile ( "csrs mie, %0" ::"r" ( 0x880 ) );
+        for( int i = 0; i < configNUMBER_OF_CORES; i++ )
+        {
+            /* One past the last word. The row length is a multiple of 16 bytes. */
+            xISRStackTops[ i ] = &( xISRStacks[ i ][ configISR_STACK_SIZE_WORDS ] );
+        }
     }
-    #endif /* ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIMECMP_BASE_ADDRESS != 0 ) */
 
-    xPortStartFirstTask();
+    static volatile UBaseType_t uxSchedulerStarted = 0;
 
-    /* Should not get here as after calling xPortStartFirstTask() only tasks
-     * should be executing. */
-    return pdFAIL;
-}
+    /* 0 until this hart has entered the scheduler. The MSIP entry uses it to
+     * choose the launch path instead of a yield. Kept in RAM so both harts
+     * see it through the coherent data cache. */
+    volatile uint8_t ucPortSchedulerStartedOnCore[ configNUMBER_OF_CORES ] = { 0 };
+
+    static void prvLaunchSchedulerOnSecondaryCores( void )
+    {
+        for( int i = 1; i < configNUMBER_OF_CORES; i++ )
+        {
+            arch_ipi_send( i );
+            while( uxSchedulerStarted != ( UBaseType_t ) i )
+            {
+            }
+        }
+
+        uxSchedulerStarted++;
+    }
+
+    static BaseType_t prvStartSchedulerOnCore( void )
+    {
+        extern void xPortStartFirstTask( void );
+        #if ( configUSE_ISR_STACK == 1)
+            StackType_t *xISRStackTop = xISRStackTops[ arch_cpuid() ];
+            #ifdef configISR_STACK_SIZE_WORDS
+            {
+                memset( ( void * ) xISRStackTop - configISR_STACK_SIZE_WORDS, portISR_STACK_FILL_BYTE, configISR_STACK_SIZE_WORDS );
+            }
+            #endif /* configISR_STACK_SIZE_WORDS */
+        #endif /* configUSE_ISR_STACK */
+
+        if( portGET_CORE_ID() == 0 ) {
+            /* If there is a CLINT then it is ok to use the default implementation
+             * in this file, otherwise vPortSetupTimerInterrupt() must be implemented to
+             * configure whichever clock is to be used to generate the tick interrupt. */
+            vPortSetupTimerInterrupt();
+
+            #if ((configMTIME_BASE_ADDRESS != 0) && (configMTIMECMP_BASE_ADDRESS != 0))
+                {
+                    /* Enable mtime and external interrupts.  1<<7 for timer interrupt,
+                     * 1<<11 for external interrupt.  _RB_ What happens here when mtime is
+                     * not present as with pulpino? */
+                    __asm volatile ( "csrs mie, %0" ::"r" ( 0x880 ) );
+                }
+            #endif /* ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIMECMP_BASE_ADDRESS != 0 ) */
+        }
+
+        __asm volatile ( "csrsi mie, 0x8" );
+
+        ucPortSchedulerStartedOnCore[ portGET_CORE_ID() ] = 1;
+        __asm volatile ( "fence w, rw" ::: "memory" );
+        arch_disable_interrupts();
+        xPortStartFirstTask();
+
+        /* Should not get here as after calling xPortStartFirstTask() only tasks
+         * should be executing. */
+        return pdFAIL;
+    }
+
+    static void prvDisableInterruptsAndPortStartSchedulerOnCore( void )
+    {
+        arch_disable_interrupts();
+        prvStartSchedulerOnCore();
+    }
+
+    BaseType_t xPortStartScheduler( void )
+    {
+        configASSERT( portGET_CORE_ID() == 0 ); /* we must be started on core 0 */
+
+        xPortInitISRStacks();
+
+        asm volatile ("fence" ::: "memory");
+        prvLaunchSchedulerOnSecondaryCores();
+        asm volatile ("fence" ::: "memory");
+
+        prvStartSchedulerOnCore();
+
+        /* Should not get here! */
+        return 0;
+    }
+#endif /* if ( configNUMBER_OF_CORES == 1 ) */
 /*-----------------------------------------------------------*/
 
 void vPortEndScheduler( void )
@@ -204,4 +316,57 @@ void vPortEndScheduler( void )
     {
     }
 }
+
+void vPortIPIHandler()
+{
+    //XXX: do we really need to clear msip?
+    arch_ipi_clear();
+    portYIELD_FROM_ISR( pdTRUE );
+}
+
+#if ( configNUMBER_OF_CORES == 1)
+void xPortMTIMERHandler(void)
+{
+    if ( xTaskIncrementTick() )
+    {
+        vTaskSwitchContext();
+    }
+}
+#else /* if ( configNUMBER_OF_CORES == 1 ) */
+void xPortMTIMERHandler(void)
+{
+    UBaseType_t uxSavedInterruptStatus;
+    BaseType_t xSwitchRequired;
+    uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+    {
+        xSwitchRequired = xTaskIncrementTick();
+    }
+    taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+
+    if ( xSwitchRequired )
+    {
+        vTaskSwitchContext( arch_cpuid() );
+    }
+}
+#endif /* if ( configNUMBER_OF_CORES == 1 ) */
 /*-----------------------------------------------------------*/
+
+/* SMP */
+#if ( configNUMBER_OF_CORES > 1 )
+void vPortYieldCore( BaseType_t xCoreID )
+{
+    configASSERT( xCoreID != ( BaseType_t ) portGET_CORE_ID() );
+    arch_ipi_send( xCoreID );
+}
+
+
+void vPortSchedulerLaunchHandler()
+{
+    arch_ipi_clear();
+    /* We are starting the scheduler as secondary cores */
+    uxSchedulerStarted++;
+    while (uxSchedulerStarted != configNUMBER_OF_CORES) {}
+    //XXX: memory barrier
+    prvStartSchedulerOnCore();
+}
+#endif /* if ( configNUMBER_OF_CORES > 1 ) */

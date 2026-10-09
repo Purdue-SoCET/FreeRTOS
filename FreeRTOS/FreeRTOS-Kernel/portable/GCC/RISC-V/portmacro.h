@@ -36,6 +36,11 @@
 #endif
 /* *INDENT-ON* */
 
+#include "arch/interrupt.h"
+#include "arch/cpuid.h"
+#include "arch/spinlock.h"
+#include "arch/ipi.h"
+
 /*-----------------------------------------------------------
  * Port specific definitions.
  *
@@ -90,15 +95,23 @@ typedef portUBASE_TYPE   TickType_t;
 /*-----------------------------------------------------------*/
 
 /* Scheduler utilities. */
-extern void vTaskSwitchContext( void );
-#define portYIELD()                __asm volatile ( "ecall" );
+#if ( configNUMBER_OF_CORES == 1 )
+    #define portTASK_SWITCH_CONTEXT() vTaskSwitchContext()
+#else /* if (configNUMBER_OF_CORES == 1 ) */
+    #define portTASK_SWITCH_CONTEXT() vTaskSwitchContext(portGET_CORE_ID())
+#endif /* if (configNUMBER_OF_CORES == 1 ) */
+
+// XXX: only support async context switch (configCRITICAL_NESTING_IN_TCB == 0)
+//#define portYIELD()                __asm volatile ( "ecall" );
+#define portYIELD()                arch_ipi_send(arch_cpuid());
+
 #define portEND_SWITCHING_ISR( xSwitchRequired ) \
     do                                           \
     {                                            \
         if( xSwitchRequired != pdFALSE )         \
         {                                        \
             traceISR_EXIT_TO_SCHEDULER();        \
-            vTaskSwitchContext();                \
+            portTASK_SWITCH_CONTEXT();           \
         }                                        \
         else                                     \
         {                                        \
@@ -111,24 +124,55 @@ extern void vTaskSwitchContext( void );
 /* Critical section management. */
 #define portCRITICAL_NESTING_IN_TCB    0
 
-#define portDISABLE_INTERRUPTS()                                   __asm volatile ( "csrc mstatus, 8" )
-#define portENABLE_INTERRUPTS()                                    __asm volatile ( "csrs mstatus, 8" )
+#define portDISABLE_INTERRUPTS()    arch_disable_interrupts()
+#define portENABLE_INTERRUPTS()     arch_enable_interrupts()
 
-extern size_t xCriticalNesting;
-#define portENTER_CRITICAL()      \
-    {                             \
-        portDISABLE_INTERRUPTS(); \
-        xCriticalNesting++;       \
-    }
+#if ( configNUMBER_OF_CORES == 1 )
+	extern size_t xCriticalNesting;
+	#define portENTER_CRITICAL()      \
+		{                             \
+			portDISABLE_INTERRUPTS(); \
+			xCriticalNesting++;       \
+		}
 
-#define portEXIT_CRITICAL()          \
-    {                                \
-        xCriticalNesting--;          \
-        if( xCriticalNesting == 0 )  \
-        {                            \
-            portENABLE_INTERRUPTS(); \
-        }                            \
-    }
+	#define portEXIT_CRITICAL()          \
+		{                                \
+			xCriticalNesting--;          \
+			if( xCriticalNesting == 0 )  \
+			{                            \
+				portENABLE_INTERRUPTS(); \
+			}                            \
+		}
+#else /* if ( configNUMBER_OF_CORES == 1 ) */
+    #define portGET_CORE_ID()                       arch_cpuid()
+    void vPortYieldCore( BaseType_t xCoreID );
+    #define portYIELD_CORE( xCoreID )               vPortYieldCore(xCoreID)
+
+    #define portSET_INTERRUPT_MASK()                arch_save_and_disable_interrupts()
+    #define portCLEAR_INTERRUPT_MASK( ulState )     arch_restore_interrupts( ulState )
+    #define portSET_INTERRUPT_MASK_FROM_ISR()       arch_set_interrupt_mask_from_isr()
+    #define portCLEAR_INTERRUPT_MASK_FROM_ISR( x )  arch_clear_interrupt_mask_from_isr(x)
+
+    #define portGET_TASK_LOCK( xCoreID )            arch_spinlock_lock(xCoreID, &arch_task_lock)
+    #define portRELEASE_TASK_LOCK( xCoreID )        arch_spinlock_unlock(xCoreID, &arch_task_lock)
+    #define portGET_ISR_LOCK( xCoreID )             arch_spinlock_lock(xCoreID, &arch_isr_lock )
+    #define portRELEASE_ISR_LOCK( xCoreID )         arch_spinlock_unlock(xCoreID, &arch_isr_lock)
+
+    extern void vTaskEnterCritical( void );
+    extern void vTaskExitCritical( void );
+    extern UBaseType_t vTaskEnterCriticalFromISR( void );
+    extern void vTaskExitCriticalFromISR( UBaseType_t uxSavedInterruptStatus );
+    #define portENTER_CRITICAL()                    vTaskEnterCritical()
+    #define portEXIT_CRITICAL()                     vTaskExitCritical()
+    #define portENTER_CRITICAL_FROM_ISR()           vTaskEnterCriticalFromISR()
+    #define portEXIT_CRITICAL_FROM_ISR( x )         vTaskExitCriticalFromISR(x)
+
+    extern UBaseType_t uxCriticalNestings[ configNUMBER_OF_CORES ];
+    #define portGET_CRITICAL_NESTING_COUNT( xCoreID )        ( uxCriticalNestings[ xCoreID ] )
+    #define portSET_CRITICAL_NESTING_COUNT( xCoreID, x )     ( uxCriticalNestings[ xCoreID ] = ( x ) )
+    #define portINCREMENT_CRITICAL_NESTING_COUNT( xCoreID )  ( uxCriticalNestings[ xCoreID ]++ )
+    #define portDECREMENT_CRITICAL_NESTING_COUNT( xCoreID )  ( uxCriticalNestings[ xCoreID ]-- )
+#endif /* if ( configNUMBER_OF_CORES == 1 ) */
 
 /*-----------------------------------------------------------*/
 
@@ -196,6 +240,7 @@ extern size_t xCriticalNesting;
 #elif !defined( configMTIME_BASE_ADDRESS ) || !defined( configMTIMECMP_BASE_ADDRESS )
     #error "configMTIME_BASE_ADDRESS and configMTIMECMP_BASE_ADDRESS must be defined in FreeRTOSConfig.h.  Set them to zero if there is no MTIME (machine time) clock.  See www.FreeRTOS.org/Using-FreeRTOS-on-RISC-V.html"
 #endif /* if defined( configCLINT_BASE_ADDRESS ) && !defined( configMTIME_BASE_ADDRESS ) && ( configCLINT_BASE_ADDRESS == 0 ) */
+/*-----------------------------------------------------------*/
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

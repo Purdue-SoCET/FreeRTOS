@@ -58,6 +58,7 @@
  */
 
 #include "portContext.h"
+#include "arch/cpuid.h"
 
 /* Check the freertos_risc_v_chip_specific_extensions.h and/or command line
 definitions. */
@@ -85,6 +86,9 @@ definitions. */
 .global freertos_risc_v_exception_handler
 .global freertos_risc_v_interrupt_handler
 .global freertos_risc_v_mtimer_interrupt_handler
+.global freertos_risc_v_msip_interrupt_handler
+.global freertos_risc_v_msip_entry
+.global freertos_risc_v_scheduler_launch_handler
 
 .extern vTaskSwitchContext
 .extern xTaskIncrementTick
@@ -92,6 +96,8 @@ definitions. */
 .extern pullNextTime
 .extern uxTimerIncrementsForOneTick /* size_t type so 32-bit on 32-bit core and 64-bits on 64-bit core. */
 .extern xTaskReturnAddress
+.extern vPortIPIHandler
+.extern ucPortSchedulerStartedOnCore
 
 .weak freertos_risc_v_application_exception_handler
 .weak freertos_risc_v_application_interrupt_handler
@@ -193,8 +199,8 @@ definitions. */
  * portTASK_RETURN_ADDRESS
  * [FPU registers (when enabled/available) go here]
  * [VPU registers (when enabled/available) go here]
- * mstatus
  * [chip specific registers go here]
+ * mstatus
  * pxCode
  */
 pxPortInitialiseStack:
@@ -212,6 +218,14 @@ pxPortInitialiseStack:
     load_x t0, xTaskReturnAddress
     store_x t0, 0(a0)                   /* Return address onto the stack. */
 
+    addi t0, x0, portasmADDITIONAL_CONTEXT_SIZE /* The number of chip specific additional registers. */
+chip_specific_stack_frame:              /* First add any chip specific registers to the stack frame being created. */
+    beq t0, x0, 1f                      /* No more chip specific registers to save. */
+    addi a0, a0, -portWORD_SIZE         /* Make space for chip specific register. */
+    store_x x0, 0(a0)                   /* Give the chip specific register an initial value of zero. */
+    addi t0, t0, -1                     /* Decrement the count of chip specific registers remaining. */
+    j chip_specific_stack_frame         /* Until no more chip specific registers. */
+1:
     csrr t0, mstatus                    /* Obtain current mstatus value. */
     andi t0, t0, ~0x8                   /* Ensure interrupts are disabled when the stack is restored within an ISR.  Required when a task is created after the scheduler has been started, otherwise interrupts would be disabled anyway. */
     addi t1, x0, 0x188                  /* Generate the value 0x1880, which are the MPIE=1 and MPP=M_Mode in mstatus. */
@@ -237,31 +251,22 @@ pxPortInitialiseStack:
     addi a0, a0, -portWORD_SIZE
     store_x t0, 0(a0)                   /* mstatus onto the stack. */
 
-    addi t0, x0, portasmADDITIONAL_CONTEXT_SIZE /* The number of chip specific additional registers. */
-chip_specific_stack_frame:              /* First add any chip specific registers to the stack frame being created. */
-    beq t0, x0, 1f                      /* No more chip specific registers to save. */
-    addi a0, a0, -portWORD_SIZE         /* Make space for chip specific register. */
-    store_x x0, 0(a0)                   /* Give the chip specific register an initial value of zero. */
-    addi t0, t0, -1                     /* Decrement the count of chip specific registers remaining. */
-    j chip_specific_stack_frame         /* Until no more chip specific registers. */
-1:
-
     addi a0, a0, -portWORD_SIZE
     store_x a1, 0(a0)                   /* mret value (pxCode parameter) onto the stack. */
     ret
 /*-----------------------------------------------------------*/
 
 xPortStartFirstTask:
-    load_x  sp, pxCurrentTCB            /* Load pxCurrentTCB. */
+    portcontextGET_CURRENT_TCB sp, x1
     load_x  sp, 0( sp )                 /* Read sp from first TCB member. */
 
     load_x  x1, 0( sp ) /* Note for starting the scheduler the exception return address is used as the function return address. */
 
-    portasmRESTORE_ADDITIONAL_REGISTERS /* Defined in freertos_risc_v_chip_specific_extensions.h to restore any registers unique to the RISC-V implementation. */
-
     load_x  x5, 1 * portWORD_SIZE( sp ) /* Initial mstatus into x5 (t0). */
     addi    x5, x5, 0x08                /* Set MIE bit so the first task starts with interrupts enabled - required as returns with ret not eret. */
     csrw    mstatus, x5                 /* Interrupts enabled from here! */
+
+    portasmRESTORE_ADDITIONAL_REGISTERS /* Defined in freertos_risc_v_chip_specific_extensions.h to restore any registers unique to the RISC-V implementation. */
 
     load_x  x7,  5  * portWORD_SIZE( sp )   /* t2 */
     load_x  x8,  6  * portWORD_SIZE( sp )   /* s0/fp */
@@ -291,10 +296,6 @@ xPortStartFirstTask:
     load_x  x31, 29 * portWORD_SIZE( sp )   /* t6 */
 #endif
 
-    load_x  x5, portCRITICAL_NESTING_OFFSET * portWORD_SIZE( sp )    /* Obtain xCriticalNesting value for this task from task's stack. */
-    load_x  x6, pxCriticalNesting           /* Load the address of xCriticalNesting into x6. */
-    store_x x5, 0( x6 )                     /* Restore the critical nesting value for this task. */
-
     load_x  x5, 3 * portWORD_SIZE( sp )     /* Initial x5 (t0) value. */
     load_x  x6, 4 * portWORD_SIZE( sp )     /* Initial x6 (t1) value. */
 
@@ -322,6 +323,9 @@ freertos_risc_v_exception_handler:
     /* a0 now contains mcause. */
     li t0, 11                           /* 11 == environment call. */
     bne a0, t0, other_exception         /* Not an M environment call, so some other exception. */
+#if( configNUMBER_OF_CORES > 1 )
+    csrr a0, mhartid
+#endif
     call vTaskSwitchContext
     portcontextRESTORE_CONTEXT
 
@@ -341,66 +345,29 @@ freertos_risc_v_interrupt_handler:
 freertos_risc_v_mtimer_interrupt_handler:
     portcontextSAVE_INTERRUPT_CONTEXT
     portUPDATE_MTIMER_COMPARE_REGISTER
-    call xTaskIncrementTick
-    beqz a0, exit_without_context_switch    /* Don't switch context if incrementing tick didn't unblock a task. */
-    call vTaskSwitchContext
+    call xPortMTIMERHandler
 exit_without_context_switch:
     portcontextRESTORE_CONTEXT
 /*-----------------------------------------------------------*/
 
-.section .text.freertos_risc_v_trap_handler
-.align 8
-freertos_risc_v_trap_handler:
-    portcontextSAVE_CONTEXT_INTERNAL
+.section .text.freertos_risc_v_msip_entry
+.align 2
+freertos_risc_v_msip_entry:
+    csrr t0, mhartid
+    la t1, ucPortSchedulerStartedOnCore
+    add t1, t1, t0
+    lbu t2, 0(t1)
+    beqz t2, freertos_risc_v_scheduler_launch_handler
+    j freertos_risc_v_msip_interrupt_handler
 
-    csrr a0, mcause
-    csrr a1, mepc
-
-    bge a0, x0, synchronous_exception
-
-asynchronous_interrupt:
-    store_x a1, 0( sp )                 /* Asynchronous interrupt so save unmodified exception return address. */
-    load_x sp, xISRStackTop             /* Switch to ISR stack. */
-    j handle_interrupt
-
-synchronous_exception:
-    addi a1, a1, 4                      /* Synchronous so update exception return address to the instruction after the instruction that generated the exeption. */
-    store_x a1, 0( sp )                 /* Save updated exception return address. */
-    load_x sp, xISRStackTop             /* Switch to ISR stack. */
-    j handle_exception
-
-handle_interrupt:
-#if( portasmHAS_MTIME != 0 )
-
-    test_if_mtimer:                     /* If there is a CLINT then the mtimer is used to generate the tick interrupt. */
-        addi t0, x0, 1
-        slli t0, t0, __riscv_xlen - 1   /* LSB is already set, shift into MSB.  Shift 31 on 32-bit or 63 on 64-bit cores. */
-        addi t1, t0, 7                  /* 0x8000[]0007 == machine timer interrupt. */
-        bne a0, t1, application_interrupt_handler
-
-        portUPDATE_MTIMER_COMPARE_REGISTER
-        call xTaskIncrementTick
-        beqz a0, processed_source       /* Don't switch context if incrementing tick didn't unblock a task. */
-        call vTaskSwitchContext
-        j processed_source
-
-#endif /* portasmHAS_MTIME */
-
-application_interrupt_handler:
-    call freertos_risc_v_application_interrupt_handler
-    j processed_source
-
-handle_exception:
-    /* a0 contains mcause. */
-    li t0, 11                                   /* 11 == environment call. */
-    bne a0, t0, application_exception_handler   /* Not an M environment call, so some other exception. */
-    call vTaskSwitchContext
-    j processed_source
-
-application_exception_handler:
-    call freertos_risc_v_application_exception_handler
-    j processed_source                  /* No other exceptions handled yet. */
-
-processed_source:
+.section .text.freertos_risc_v_msip_interrupt_handler
+freertos_risc_v_msip_interrupt_handler:
+    portcontextSAVE_INTERRUPT_CONTEXT
+    call vPortIPIHandler
     portcontextRESTORE_CONTEXT
+/*-----------------------------------------------------------*/
+
+.section .text.freertos_risc_v_scheduler_launch_handler
+freertos_risc_v_scheduler_launch_handler:
+    call vPortSchedulerLaunchHandler
 /*-----------------------------------------------------------*/

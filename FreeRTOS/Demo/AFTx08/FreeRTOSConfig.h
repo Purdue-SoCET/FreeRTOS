@@ -44,7 +44,7 @@
 /* See https://www.freertos.org/Using-FreeRTOS-on-RISC-V.html */
 #define configMTIME_BASE_ADDRESS		( CLINT_ADDR + CLINT_MTIME )
 #define configMTIMECMP_BASE_ADDRESS		( CLINT_ADDR + CLINT_MTIMECMP )
-#define configISR_STACK_SIZE_WORDS		( 300 )
+#define configISR_STACK_SIZE_WORDS		( 256 )
 
 
 
@@ -54,7 +54,7 @@
 #define configCPU_CLOCK_HZ				( ( unsigned long ) 25000000 )
 #define configTICK_RATE_HZ				( ( TickType_t ) 1000 ) 
 #define configMINIMAL_STACK_SIZE		( ( unsigned short ) 120 )
-#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 14 * 1024 ) )
+#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 10 * 1024 ) )
 #define configMAX_TASK_NAME_LEN			( 12 )
 #define configUSE_TRACE_FACILITY		1
 #define configUSE_16_BIT_TICKS			0
@@ -65,7 +65,10 @@
 #define configUSE_MALLOC_FAILED_HOOK	1
 #define configUSE_QUEUE_SETS			1
 #define configUSE_COUNTING_SEMAPHORES	1
-#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
+#define configNUMBER_OF_CORES    2
+#define configUSE_PASSIVE_IDLE_HOOK    1
 
 #define configMAX_PRIORITIES			( 9UL )
 #define configQUEUE_REGISTRY_SIZE		10
@@ -112,8 +115,10 @@ FreeRTOS/Source/tasks.c for limitations. */
  * time. */
 #define configRUN_ADDITIONAL_TESTS				1
 
+#ifndef __ASSEMBLER__
 void vAssertCalled( const char *pcFileName, uint32_t ulLine );
 #define configASSERT( x ) if( ( x ) == 0 ) vAssertCalled( __FILE__, __LINE__ );
+#endif
 
 /* The test that checks the trigger level on stream buffers requires an
 allowable margin of error on slower processors (slower than the Win32

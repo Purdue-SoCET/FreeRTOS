@@ -51,6 +51,12 @@
 
 #include "freertos_risc_v_chip_specific_extensions.h"
 
+#include "arch/cpuid.h"
+
+// XXX: is this good practice?
+#include "FreeRTOSConfig.h"
+
+
 /* Only the standard core registers are stored by default.  Any additional
  * registers must be saved by the portasmSAVE_ADDITIONAL_REGISTERS and
  * portasmRESTORE_ADDITIONAL_REGISTERS macros - which can be defined in a chip
@@ -118,11 +124,41 @@
 #endif
 /*-----------------------------------------------------------*/
 
-.extern pxCurrentTCB
-.extern xISRStackTop
-.extern xCriticalNesting
-.extern pxCriticalNesting
+
 /*-----------------------------------------------------------*/
+
+#if ( configNUMBER_OF_CORES > 1 )
+    .extern pxCurrentTCBs
+    .extern xISRStackTops
+    .macro portcontextGET_CURRENT_TCB out_reg, scratch_reg
+        arch_cpuid \scratch_reg
+        slli    \scratch_reg, \scratch_reg, 2
+        la      \out_reg, pxCurrentTCBs
+        add     \out_reg, \out_reg, \scratch_reg
+        lw      \out_reg, 0(\out_reg)
+    .endm
+
+    .macro portcontextGET_ISR_STACK_TOP out_reg, scratch_reg
+        arch_cpuid \scratch_reg
+        slli    \scratch_reg, \scratch_reg, 2
+        la      \out_reg, xISRStackTops
+        add     \out_reg, \out_reg, \scratch_reg
+        lw      \out_reg, 0(\out_reg)
+    .endm
+#else /* if ( configNUMBER_OF_CORES > 1 ) */
+    .extern pxCurrentTCB
+    .extern xISRStackTop
+    .macro portcontextGET_CURRENT_TCB out_reg, scratch_reg
+        lw      \out_reg, pxCurrentTCB
+    .endm
+
+    .macro portcontextGET_ISR_STACK_TOP out_reg, scratch_reg
+        lw      \out_reg, xISRStackTop
+    .endm
+#endif /* if ( configNUMBER_OF_CORES > 1 ) */
+
+/*-----------------------------------------------------------*/
+
 
     .macro portcontexSAVE_FPU_CONTEXT
 addi sp, sp, -( portFPU_CONTEXT_SIZE )
@@ -214,13 +250,13 @@ neg  t0, t0
 
 /* Store the vector registers in group of 8. */
 add     sp, sp, t0
-vs8r.v  v24, (sp)   /* Store v24-v31. */
-add     sp, sp, t0
-vs8r.v  v16, (sp)   /* Store v16-v23. */
+vs8r.v  v0, (sp)    /* Store v0-v7. */
 add     sp, sp, t0
 vs8r.v  v8, (sp)    /* Store v8-v15. */
 add     sp, sp, t0
-vs8r.v  v0, (sp)    /* Store v0-v7. */
+vs8r.v  v16, (sp)   /* Store v16-v23. */
+add     sp, sp, t0
+vs8r.v  v24, (sp)   /* Store v24-v31. */
 
 /* Store the VPU CSRs. */
 addi    sp, sp, -( 4 * portWORD_SIZE )
@@ -256,13 +292,13 @@ csrr t0, vlenb /* t0 = vlenb. vlenb is the length of each vector register in byt
 slli t0, t0, 3 /* t0 = vlenb * 8. t0 now contains the space required to store 8 vector registers. */
 
 /* Restore the vector registers. */
-vl8r.v  v0, (sp)    /* Restore v0-v7. */
+vl8r.v  v24, (sp)
 add     sp, sp, t0
-vl8r.v  v8, (sp)    /* Restore v8-v15. */
+vl8r.v  v16, (sp)
 add     sp, sp, t0
-vl8r.v  v16, (sp)   /* Restore v16-v23. */
+vl8r.v  v8, (sp)
 add     sp, sp, t0
-vl8r.v  v24, (sp)   /* Restore v23-v31. */
+vl8r.v  v0, (sp)
 add     sp, sp, t0
 
 /* Re-reserve the space for mstatus and epc. */
@@ -303,9 +339,6 @@ store_x x15, 13 * portWORD_SIZE( sp )
     store_x x31, 29 * portWORD_SIZE( sp )
 #endif /* ifndef __riscv_32e */
 
-load_x t0, xCriticalNesting                                   /* Load the value of xCriticalNesting into t0. */
-store_x t0, portCRITICAL_NESTING_OFFSET * portWORD_SIZE( sp ) /* Store the critical nesting value to the stack. */
-
 #if( configENABLE_FPU == 1 )
     csrr t0, mstatus
     srl t1, t0, MSTATUS_FS_OFFSET
@@ -322,16 +355,16 @@ store_x t0, portCRITICAL_NESTING_OFFSET * portWORD_SIZE( sp ) /* Store the criti
     srl t1, t0, MSTATUS_VS_OFFSET
     andi t1, t1, 3
     addi t2, x0, 3
-    bne t1, t2, 2f /* If VPU status is not dirty, do not save VPU registers. */
+    bne t1, t2, 2f /* If VPU status is not dirty, do not save FPU registers. */
 
     portcontexSAVE_VPU_CONTEXT
 2:
 #endif
 
+portasmSAVE_ADDITIONAL_REGISTERS /* Defined in freertos_risc_v_chip_specific_extensions.h to save any registers unique to the RISC-V implementation. */
+
 csrr t0, mstatus
 store_x t0, 1 * portWORD_SIZE( sp )
-
-portasmSAVE_ADDITIONAL_REGISTERS /* Defined in freertos_risc_v_chip_specific_extensions.h to save any registers unique to the RISC-V implementation. */
 
 #if( configENABLE_FPU == 1 )
     /* Mark the FPU as clean, if it was dirty and we saved FPU registers. */
@@ -363,7 +396,7 @@ portasmSAVE_ADDITIONAL_REGISTERS /* Defined in freertos_risc_v_chip_specific_ext
 4:
 #endif
 
-load_x t0, pxCurrentTCB          /* Load pxCurrentTCB. */
+portcontextGET_CURRENT_TCB t0, t1 // XXX: scratch t1 here
 store_x sp, 0 ( t0 )             /* Write sp to first TCB member. */
 
    .endm
@@ -375,7 +408,7 @@ csrr a0, mcause
 csrr a1, mepc
 addi a1, a1, 4          /* Synchronous so update exception return address to the instruction after the instruction that generated the exception. */
 store_x a1, 0 ( sp )    /* Save updated exception return address. */
-load_x sp, xISRStackTop /* Switch to ISR stack. */
+portcontextGET_ISR_STACK_TOP sp, t0 /* Switch to ISR stack. */
    .endm
 /*-----------------------------------------------------------*/
 
@@ -384,29 +417,28 @@ portcontextSAVE_CONTEXT_INTERNAL
 csrr a0, mcause
 csrr a1, mepc
 store_x a1, 0 ( sp )    /* Asynchronous interrupt so save unmodified exception return address. */
-load_x sp, xISRStackTop /* Switch to ISR stack. */
+portcontextGET_ISR_STACK_TOP sp, t0 /* Switch to ISR stack. */
    .endm
 /*-----------------------------------------------------------*/
 
    .macro portcontextRESTORE_CONTEXT
-load_x t1, pxCurrentTCB /* Load pxCurrentTCB. */
+portcontextGET_CURRENT_TCB t1, t0 // XXX: scratch t0 here
 load_x sp, 0 ( t1 )     /* Read sp from first TCB member. */
 
 /* Load mepc with the address of the instruction in the task to run next. */
 load_x t0, 0 ( sp )
 csrw mepc, t0
 
+/* Restore mstatus register. */
+load_x t0, 1 * portWORD_SIZE( sp )
+csrw mstatus, t0
+
 /* Defined in freertos_risc_v_chip_specific_extensions.h to restore any registers unique to the RISC-V implementation. */
 portasmRESTORE_ADDITIONAL_REGISTERS
 
-/* Restore mstatus register. It is important to use t3 (and not t0) here as t3
- * is not clobbered by portcontextRESTORE_VPU_CONTEXT and
- * portcontextRESTORE_FPU_CONTEXT. */
-load_x t3, 1 * portWORD_SIZE( sp )
-csrw mstatus, t3
-
 #if( configENABLE_VPU == 1 )
-    srl t1, t3, MSTATUS_VS_OFFSET
+    csrr t0, mstatus
+    srl t1, t0, MSTATUS_VS_OFFSET
     andi t1, t1, 3
     addi t2, x0, 3
     bne t1, t2, 5f /* If VPU status is not dirty, do not restore VPU registers. */
@@ -416,7 +448,8 @@ csrw mstatus, t3
 #endif /* ifdef portasmSTORE_VPU_CONTEXT */
 
 #if( configENABLE_FPU == 1 )
-    srl t1, t3, MSTATUS_FS_OFFSET
+    csrr t0, mstatus
+    srl t1, t0, MSTATUS_FS_OFFSET
     andi t1, t1, 3
     addi t2, x0, 3
     bne t1, t2, 6f /* If FPU status is not dirty, do not restore FPU registers. */
@@ -424,10 +457,6 @@ csrw mstatus, t3
     portcontextRESTORE_FPU_CONTEXT
 6:
 #endif /* ifdef portasmSTORE_FPU_CONTEXT */
-
-load_x t0, portCRITICAL_NESTING_OFFSET * portWORD_SIZE( sp ) /* Obtain xCriticalNesting value for this task from task's stack. */
-load_x t1, pxCriticalNesting                                 /* Load the address of xCriticalNesting into t1. */
-store_x t0, 0 ( t1 )                                         /* Restore the critical nesting value for this task. */
 
 load_x x1,  2  * portWORD_SIZE( sp )
 load_x x5,  3  * portWORD_SIZE( sp )

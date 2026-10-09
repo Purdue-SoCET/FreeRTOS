@@ -2,6 +2,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "riscv-virt.h"
+#include "arch/cpuid.h"
+#include "arch/spinlock.h"
 
 /* Standard includes. */
 #include <stdio.h>
@@ -49,6 +51,7 @@ extern void freertos_vector_table( void );
  * main_fpga() is AFTx07 specific to test on Socet FPGA
  */
 extern void main_blinky( void );
+extern void main_smp( void );
 extern void main_full( void );
 extern void main_fpga( void );
 extern void uart_sendbyte(char c);
@@ -91,6 +94,10 @@ void main( void )
 	#if ( mainFPGA == 1)
 	{
 		main_fpga();
+	}
+	#elif ( mainCREATE_SMP_DEMO == 1 )
+	{
+		main_smp();
 	}
 	#elif ( mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 )
 	{
@@ -136,6 +143,17 @@ void vApplicationIdleHook( void )
 	that vApplicationIdleHook() is permitted to return to its calling function,
 	because it is the responsibility of the idle task to clean up memory
 	allocated by the kernel to any task that has since deleted itself. */
+}
+/*-----------------------------------------------------------*/
+
+void vApplicationPassiveIdleHook( void )
+{
+	/* The passive idle loop has nothing else to do when no task is ready.
+	 * gcc turns that empty loop into a jump-to-self, and this core halts on
+	 * that instruction, which stops the hart that owns the tick. The call
+	 * and the nop keep the loop as real instructions so a timer interrupt
+	 * can still preempt it. */
+	__asm volatile ( "nop" );
 }
 /*-----------------------------------------------------------*/
 
@@ -229,6 +247,23 @@ static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 	configMINIMAL_STACK_SIZE is specified in words, not bytes. */
 	*pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
 }
+
+/* One passive idle task for hart 1. The kernel calls this when
+ * configSUPPORT_STATIC_ALLOCATION is 1 and configNUMBER_OF_CORES is greater than 1. */
+void vApplicationGetPassiveIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
+                                           StackType_t ** ppxIdleTaskStackBuffer,
+                                           configSTACK_DEPTH_TYPE * puxIdleTaskStackSize,
+                                           BaseType_t xPassiveIdleTaskIndex )
+{
+static StaticTask_t xPassiveIdleTCB;
+static StackType_t uxPassiveIdleStack[ configMINIMAL_STACK_SIZE ];
+
+	( void ) xPassiveIdleTaskIndex;
+
+	*ppxIdleTaskTCBBuffer = &xPassiveIdleTCB;
+	*ppxIdleTaskStackBuffer = uxPassiveIdleStack;
+	*puxIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
 /*-----------------------------------------------------------*/
 
 /* configUSE_STATIC_ALLOCATION and configUSE_TIMERS are both set to 1, so the
@@ -258,12 +293,16 @@ static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 
 int __write(int iFile, char *pcString, int iStringLength)
 {
+    int xHart = arch_cpuid();
+
     (void)iFile;
+    arch_spinlock_lock( xHart, &arch_uart_lock );
     for (int i = 0; i < iStringLength; i++) {
         char c = pcString[i];
-        if (c == '\n') uart_sendbyte('\r'); // 
+        if (c == '\n') uart_sendbyte('\r');
         uart_sendbyte(c);
     }
+    arch_spinlock_unlock( xHart, &arch_uart_lock );
     return iStringLength;
 }
 /*-----------------------------------------------------------*/
