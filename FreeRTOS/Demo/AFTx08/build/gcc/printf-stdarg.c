@@ -27,6 +27,8 @@
 
 #include <stdarg.h>
 #include "riscv-virt.h"
+#include "arch/cpuid.h"
+#include "arch/spinlock.h"
 
 #if (SYNTHESIS == 1)
 #include "uart.h"
@@ -216,9 +218,15 @@ static int tiny_print( char **out, const char *format, va_list args, unsigned in
 int printf(const char *format, ...)
 {
         va_list args;
+        int xHart = arch_cpuid();
+        int iPrinted;
 
+        /* Hold the lock for the whole string. putchar writes one byte at a time. */
+        arch_spinlock_lock( xHart, &arch_uart_lock );
         va_start( args, format );
-        return tiny_print( 0, format, args, 0 );
+        iPrinted = tiny_print( 0, format, args, 0 );
+        arch_spinlock_unlock( xHart, &arch_uart_lock );
+        return iPrinted;
 }
 
 int sprintf(char *out, const char *format, ...)
