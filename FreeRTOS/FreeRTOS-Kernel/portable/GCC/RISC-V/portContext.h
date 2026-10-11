@@ -52,8 +52,6 @@
 #include "freertos_risc_v_chip_specific_extensions.h"
 
 #include "arch/cpuid.h"
-
-// XXX: is this good practice?
 #include "FreeRTOSConfig.h"
 
 

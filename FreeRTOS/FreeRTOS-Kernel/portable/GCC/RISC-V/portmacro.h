@@ -101,8 +101,6 @@ typedef portUBASE_TYPE   TickType_t;
     #define portTASK_SWITCH_CONTEXT() vTaskSwitchContext(portGET_CORE_ID())
 #endif /* if (configNUMBER_OF_CORES == 1 ) */
 
-// XXX: only support async context switch (configCRITICAL_NESTING_IN_TCB == 0)
-//#define portYIELD()                __asm volatile ( "ecall" );
 #define portYIELD()                arch_ipi_send(arch_cpuid());
 
 #define portEND_SWITCHING_ISR( xSwitchRequired ) \
@@ -240,7 +238,6 @@ typedef portUBASE_TYPE   TickType_t;
 #elif !defined( configMTIME_BASE_ADDRESS ) || !defined( configMTIMECMP_BASE_ADDRESS )
     #error "configMTIME_BASE_ADDRESS and configMTIMECMP_BASE_ADDRESS must be defined in FreeRTOSConfig.h.  Set them to zero if there is no MTIME (machine time) clock.  See www.FreeRTOS.org/Using-FreeRTOS-on-RISC-V.html"
 #endif /* if defined( configCLINT_BASE_ADDRESS ) && !defined( configMTIME_BASE_ADDRESS ) && ( configCLINT_BASE_ADDRESS == 0 ) */
-/*-----------------------------------------------------------*/
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -1,9 +1,3 @@
-/*
- * Two tasks, same priority, no hart pinned. Each prints mhartid.
- * A passing run shows both "hart 0" and "hart 1". Hart 1 sitting only
- * in the idle task would print hart 0 forever.
- */
-
 #include <stdio.h>
 
 #include "FreeRTOS.h"
@@ -11,7 +5,7 @@
 #include "arch/cpuid.h"
 
 #define mainHART_TASK_PRIORITY    ( tskIDLE_PRIORITY + 1 )
-#define mainHART_TASK_PERIOD_MS   pdMS_TO_TICKS( 100 )
+#define mainHART_TASK_PERIOD_MS   pdMS_TO_TICKS( 10 )
 
 static void prvHartTask( void * pvParameters );
 
