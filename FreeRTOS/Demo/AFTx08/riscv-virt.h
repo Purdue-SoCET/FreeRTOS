@@ -12,7 +12,8 @@
 
 #define SYNTHESIS 0 // SYNTHESIS macro, 1 for building fpga sysnthesis, 0 for simulation 
 #define mainFPGA 0
-#define mainCREATE_SMP_DEMO	1
+#define mainCREATE_AFFINITY_DEMO	1
+#define mainCREATE_SMP_DEMO	0
 #define mainCREATE_SIMPLE_BLINKY_DEMO_ONLY	0
 
 #define CLINT_ADDR			CONS(0x90010000, UL) // address for clint

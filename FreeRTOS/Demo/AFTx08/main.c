@@ -26,6 +26,7 @@ extern void freertos_vector_table( void );
  */
 extern void main_blinky( void );
 extern void main_smp( void );
+extern void main_affinity( void );
 extern void main_full( void );
 extern void main_fpga( void );
 extern void uart_sendbyte(char c);
@@ -57,6 +58,10 @@ void main( void )
 	#if ( mainFPGA == 1)
 	{
 		main_fpga();
+	}
+	#elif ( mainCREATE_AFFINITY_DEMO == 1 )
+	{
+		main_affinity();
 	}
 	#elif ( mainCREATE_SMP_DEMO == 1 )
 	{

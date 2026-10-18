@@ -68,6 +68,7 @@
 
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 #define configNUMBER_OF_CORES    2
+#define configUSE_CORE_AFFINITY    1
 #define configUSE_PASSIVE_IDLE_HOOK    1
 
 #define configMAX_PRIORITIES			( 9UL )
