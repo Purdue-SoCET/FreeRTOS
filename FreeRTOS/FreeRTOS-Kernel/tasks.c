@@ -849,6 +849,13 @@ STATIC void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
             portMEMORY_BARRIER();
             configASSERT( pxThisTCB->xTaskRunState == taskTASK_SCHEDULED_TO_YIELD );
 
+            /* The software interrupt may already have been cleared by the
+             * IPI handler if that handler ran while a switch was not allowed.
+             * The handler does not send it again, and prvYieldCore will not
+             * either while this task stays SCHEDULED_TO_YIELD. Arm it here so
+             * the enable below actually yields. */
+            portYIELD();
+
             portENABLE_INTERRUPTS();
 
             /* Enabling interrupts should cause this core to immediately service
@@ -4178,15 +4185,24 @@ BaseType_t xTaskResumeAll( void )
 
                     if( xYieldPendings[ xCoreID ] != pdFALSE )
                     {
-                        #if ( configUSE_PREEMPTION != 0 )
-                        {
-                            xAlreadyYielded = pdTRUE;
-                        }
-                        #endif /* #if ( configUSE_PREEMPTION != 0 ) */
-
                         #if ( configNUMBER_OF_CORES == 1 )
                         {
+                            #if ( configUSE_PREEMPTION != 0 )
+                            {
+                                xAlreadyYielded = pdTRUE;
+                            }
+                            #endif /* #if ( configUSE_PREEMPTION != 0 ) */
+
                             taskYIELD_TASK_CORE_IF_USING_PREEMPTION( pxCurrentTCB );
+                        }
+                        #else /* #if ( configNUMBER_OF_CORES == 1 ) */
+                        {
+                            /* The switch has not run yet. Leave xAlreadyYielded
+                             * false so the caller yields after this critical
+                             * section. Setting it true here suppresses that
+                             * yield, and a task that just blocked stays on the
+                             * CPU. */
+                            mtCOVERAGE_TEST_MARKER();
                         }
                         #endif /* #if ( configNUMBER_OF_CORES == 1 ) */
                     }
