@@ -98,6 +98,7 @@ SOURCE_FILES += (DEMO_PROJECT)/main.c
 SOURCE_FILES += (DEMO_PROJECT)/main_blinky.c
 SOURCE_FILES += (DEMO_PROJECT)/main_smp.c
 SOURCE_FILES += (DEMO_PROJECT)/main_affinity.c
+SOURCE_FILES += (DEMO_PROJECT)/main_migrate.c
 SOURCE_FILES += (DEMO_PROJECT)/main_fpga.c
 # SOURCE_FILES += (DEMO_PROJECT)/main_test.c
 # SOURCE_FILES += (DEMO_PROJECT)/main_full.c
