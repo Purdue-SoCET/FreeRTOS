@@ -67,16 +67,26 @@
 #define configUSE_COUNTING_SEMAPHORES	1
 
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
+/* Command line -D overrides these for the compare builds.
+ * Single-core FreeRTOS cannot keep configUSE_CORE_AFFINITY at 1. */
+#ifndef configNUMBER_OF_CORES
 #define configNUMBER_OF_CORES    2
+#endif
+#ifndef configUSE_CORE_AFFINITY
 #define configUSE_CORE_AFFINITY    1
+#endif
+#ifndef configRUN_MULTIPLE_PRIORITIES
+#define configRUN_MULTIPLE_PRIORITIES    0
+#endif
 #define configUSE_PASSIVE_IDLE_HOOK    1
 
 #define configMAX_PRIORITIES			( 9UL )
 #define configQUEUE_REGISTRY_SIZE		10
 #define configSUPPORT_STATIC_ALLOCATION	1
 
-/* Timer related defines. */
+#ifndef configUSE_TIMERS
 #define configUSE_TIMERS				1
+#endif
 #define configSUPPORT_DYNAMIC_ALLOCATION 1
 #define configTIMER_TASK_PRIORITY		( configMAX_PRIORITIES - 3 )
 #define configTIMER_QUEUE_LENGTH		20
@@ -101,7 +111,10 @@ to exclude the API function. */
 #define INCLUDE_xTaskGetIdleTaskHandle			1
 #define INCLUDE_xSemaphoreGetMutexHolder		1
 #define INCLUDE_eTaskGetState					1
+/* timers.c refuses to build if this stays 1 while configUSE_TIMERS is 0. */
+#ifndef INCLUDE_xTimerPendFunctionCall
 #define INCLUDE_xTimerPendFunctionCall			1
+#endif
 #define INCLUDE_xTaskAbortDelay					1
 #define INCLUDE_xTaskGetCurrentTaskHandle		1
 #define INCLUDE_xTaskGetHandle					1

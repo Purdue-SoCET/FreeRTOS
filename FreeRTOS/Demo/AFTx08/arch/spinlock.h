@@ -5,6 +5,8 @@ struct arch_spinlock_t
 {
     volatile int cnt;
     volatile int owner;
+    volatile int flag[ 2 ];
+    volatile int turn;
 };
 
 extern struct arch_spinlock_t arch_task_lock;

@@ -158,10 +158,22 @@ size_t xTaskReturnAddress = ( size_t ) portTASK_RETURN_ADDRESS;
 /*-----------------------------------------------------------*/
 
 #if ( configNUMBER_OF_CORES == 1 )
+    /* The msip entry in portASM.S indexes this. Hart 0 is marked started
+     * below so a self-IPI takes the normal switch path. There is no
+     * second hart to launch. */
+    volatile uint8_t ucPortSchedulerStartedOnCore[ 1 ] = { 0 };
+
+    void vPortSchedulerLaunchHandler( void )
+    {
+        for( ; ; )
+        {
+            __asm volatile ( "nop" );
+        }
+    }
+
     BaseType_t xPortStartScheduler( void )
     {
         extern void xPortStartFirstTask( void );
-        extern void freertos_risc_v_msip_interrupt_handler( void );
 
         #if ( configASSERT_DEFINED == 1 )
         {
@@ -181,9 +193,12 @@ size_t xTaskReturnAddress = ( size_t ) portTASK_RETURN_ADDRESS;
         {
             __asm volatile ( "csrs mie, %0" ::"r" ( 0x880 ) );
         }
-        #endif 
+        #endif
 
-        arch_trap_handler_install(3, freertos_risc_v_msip_interrupt_handler);
+        /* main() already points mtvec at freertos_vector_table. That table
+         * sends machine software interrupts to freertos_risc_v_msip_entry. */
+        ucPortSchedulerStartedOnCore[ 0 ] = 1;
+        __asm volatile ( "fence w, rw" ::: "memory" );
         __asm volatile ( "csrsi mie, 0x8" );
 
         xPortStartFirstTask();
