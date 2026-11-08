@@ -28,6 +28,9 @@ extern void main_blinky( void );
 extern void main_smp( void );
 extern void main_affinity( void );
 extern void main_migrate( void );
+extern void main_compare_bare( void );
+extern void main_compare_single( void );
+extern void main_compare_smp( void );
 extern void main_full( void );
 extern void main_fpga( void );
 extern void uart_sendbyte(char c);
@@ -56,7 +59,19 @@ void main( void )
 	printf("Get into main\n");
 
 
-	#if ( mainFPGA == 1)
+	#if defined( COMPARE_MODE_BARE )
+	{
+		main_compare_bare();
+	}
+	#elif defined( COMPARE_MODE_SINGLE )
+	{
+		main_compare_single();
+	}
+	#elif defined( COMPARE_MODE_SMP )
+	{
+		main_compare_smp();
+	}
+	#elif ( mainFPGA == 1)
 	{
 		main_fpga();
 	}
