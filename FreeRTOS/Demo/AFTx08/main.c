@@ -31,6 +31,7 @@ extern void main_migrate( void );
 extern void main_compare_bare( void );
 extern void main_compare_single( void );
 extern void main_compare_smp( void );
+extern void main_mandelbrot( void );
 extern void main_full( void );
 extern void main_fpga( void );
 extern void uart_sendbyte(char c);
@@ -59,7 +60,11 @@ void main( void )
 	printf("Get into main\n");
 
 
-	#if defined( COMPARE_MODE_BARE )
+	#if defined( MANDEL_MODE_SINGLE ) || defined( MANDEL_MODE_SMP )
+	{
+		main_mandelbrot();
+	}
+	#elif defined( COMPARE_MODE_BARE )
 	{
 		main_compare_bare();
 	}

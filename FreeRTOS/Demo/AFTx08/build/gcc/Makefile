@@ -1,8 +1,10 @@
 # COMPARE=bare | single | smp
-# Each mode gets its own object directory so a stale tasks.o cannot
-# leak from one hart-count into another.
+# MANDEL=single | smp
 COMPARE ?=
-ifeq ($(COMPARE),)
+MANDEL ?=
+ifneq ($(MANDEL),)
+OUTPUT_DIR := ./output/mandel-$(MANDEL)
+else ifeq ($(COMPARE),)
 OUTPUT_DIR := ./output
 else
 OUTPUT_DIR := ./output/$(COMPARE)
@@ -100,10 +102,19 @@ INCLUDE_DIRS += -I$(DEMO_ROOT)/Common/include
 # the above common demo (and test) files too.
 #
 DEMO_PROJECT = $(DEMO_ROOT)/AFTx08
-VPATH += $(DEMO_PROJECT) $(DEMO_PROJECT)/arch $(DEMO_PROJECT)/compare_tests
-INCLUDE_DIRS += -I$(DEMO_PROJECT) -I$(DEMO_PROJECT)/compare_tests
+VPATH += $(DEMO_PROJECT) $(DEMO_PROJECT)/arch $(DEMO_PROJECT)/compare_tests $(DEMO_PROJECT)/compare_mandelbrot
+INCLUDE_DIRS += -I$(DEMO_PROJECT) -I$(DEMO_PROJECT)/compare_tests -I$(DEMO_PROJECT)/compare_mandelbrot
 SOURCE_FILES += $(DEMO_PROJECT)/main.c
-ifeq ($(COMPARE),bare)
+ifneq ($(MANDEL),)
+ifeq ($(MANDEL),single)
+CFLAGS += -DMANDEL_MODE_SINGLE=1 -DconfigNUMBER_OF_CORES=1 -DconfigUSE_CORE_AFFINITY=0 -DconfigUSE_TIMERS=0 -DconfigRUN_MULTIPLE_PRIORITIES=1 -DINCLUDE_xTimerPendFunctionCall=0
+else ifeq ($(MANDEL),smp)
+CFLAGS += -DMANDEL_MODE_SMP=1 -DconfigNUMBER_OF_CORES=2 -DconfigUSE_CORE_AFFINITY=1 -DconfigUSE_TIMERS=0 -DconfigRUN_MULTIPLE_PRIORITIES=1 -DINCLUDE_xTimerPendFunctionCall=0
+else
+$(error MANDEL must be single or smp)
+endif
+SOURCE_FILES += $(DEMO_PROJECT)/compare_mandelbrot/mandelbrot.c
+else ifeq ($(COMPARE),bare)
 CFLAGS += -DCOMPARE_MODE_BARE=1 -DconfigNUMBER_OF_CORES=1 -DconfigUSE_CORE_AFFINITY=0 -DconfigUSE_TIMERS=0 -DconfigRUN_MULTIPLE_PRIORITIES=1 -DINCLUDE_xTimerPendFunctionCall=0
 SOURCE_FILES += $(DEMO_PROJECT)/compare_tests/compare_bare.c
 else ifeq ($(COMPARE),single)
